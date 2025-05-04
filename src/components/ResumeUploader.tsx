@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,7 +108,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
 
       console.log("Resume uploaded successfully, calling optimize-resume function");
       
-      // Call the optimize-resume function
+      // Call the optimize-resume function with the correct invocation method
       const { data: optimizationData, error: optimizationError } = await supabase.functions
         .invoke('optimize-resume', {
           body: {
