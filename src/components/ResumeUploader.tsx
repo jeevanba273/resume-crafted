@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -339,7 +338,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
                 <p className="text-sm text-gray-600">{optimizationResult.summaryOfChanges}</p>
               </div>
 
-              {/* New Resume Score Card */}
+              {/* Resume Score Card */}
               <ResumeScoreCard 
                 score={optimizationResult.optimizationScore}
                 metrics={optimizationResult.metrics || {
@@ -348,7 +347,6 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
                   experienceMatch: Math.max(optimizationResult.optimizationScore - 5, 0),
                   skillsRelevance: optimizationResult.optimizationScore
                 }}
-                jobId={getRandomJobId()} // Generate random job ID for demo
                 improvementSuggestions={optimizationResult.improvementSuggestions}
               />
             </div>

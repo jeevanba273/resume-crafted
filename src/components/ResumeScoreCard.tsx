@@ -11,7 +11,6 @@ interface ResumeScoreCardProps {
     experienceMatch: number;
     skillsRelevance: number;
   };
-  jobId?: string;
   improvementSuggestions: string[];
 }
 
@@ -23,7 +22,6 @@ export function ResumeScoreCard({
     experienceMatch: 0,
     skillsRelevance: 0,
   },
-  jobId = "",
   improvementSuggestions,
 }: ResumeScoreCardProps) {
   const getScoreColor = (value: number) => {
@@ -43,7 +41,6 @@ export function ResumeScoreCard({
       <CardHeader className="bg-white pb-2 flex flex-row justify-between items-center">
         <div>
           <h3 className="font-semibold text-lg">Your Resume Score</h3>
-          {jobId && <p className="text-sm text-muted-foreground">Job ID: {jobId}</p>}
         </div>
         <div className={`inline-flex items-center justify-center ${getScoreBgColor(score)} rounded-full h-16 w-16 font-bold text-xl`}>
           {score}%
