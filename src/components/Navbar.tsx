@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
@@ -57,7 +56,7 @@ const Navbar = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold bg-clip-text text-transparent enhanced-gradient">
+            <span className="text-2xl font-bold enhanced-gradient">
               Resume Crafted
             </span>
           </Link>

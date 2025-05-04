@@ -118,6 +118,8 @@
   background: linear-gradient(90deg, #D3E4FD, #a2c6fa, #6ea6f6, #2563eb, #4f46e5, #7c3aed);
   background-size: 400% auto;
   background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
   animation: gradient-wave 8s ease infinite;
 }
 
