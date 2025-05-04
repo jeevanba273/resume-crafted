@@ -15,12 +15,19 @@ import {
 
 const Navbar = () => {
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
     const getUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getUserData();
@@ -56,7 +63,7 @@ const Navbar = () => {
           </Link>
         </div>
         <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => {
+          {!loading && navItems.map((item) => {
             // Only show Dashboard link if user is logged in and the item requires auth
             if (item.authRequired && !user) {
               return null;
@@ -77,46 +84,50 @@ const Navbar = () => {
           })}
         </nav>
         <div className="hidden md:flex items-center gap-4">
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <User className="h-5 w-5" />
-                  <span className="sr-only">User menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <div className="px-2 py-1.5 text-sm font-medium">
-                  {user.email}
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard" className="cursor-pointer w-full">
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/account" className="cursor-pointer w-full">
-                    Account Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {!loading ? (
+            user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <User className="h-5 w-5" />
+                    <span className="sr-only">User menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-2 py-1.5 text-sm font-medium">
+                    {user.email}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer w-full">
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/account" className="cursor-pointer w-full">
+                      Account Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="outline" size="sm">
+                    Log In
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button size="sm">Get Started</Button>
+                </Link>
+              </>
+            )
           ) : (
-            <>
-              <Link to="/login">
-                <Button variant="outline" size="sm">
-                  Log In
-                </Button>
-              </Link>
-              <Link to="/register">
-                <Button size="sm">Get Started</Button>
-              </Link>
-            </>
+            <div className="w-10 h-10"></div> // Placeholder with same width during loading
           )}
         </div>
 
@@ -130,7 +141,7 @@ const Navbar = () => {
           </SheetTrigger>
           <SheetContent side="right">
             <div className="flex flex-col space-y-6 mt-8">
-              {navItems.map((item) => {
+              {!loading && navItems.map((item) => {
                 // Only show Dashboard link if user is logged in and the item requires auth
                 if (item.authRequired && !user) {
                   return null;
@@ -145,27 +156,29 @@ const Navbar = () => {
                   </Link>
                 );
               })}
-              {user ? (
-                <>
-                  <Link to="/account" className="text-base font-medium transition-colors hover:text-primary">
-                    Account Settings
-                  </Link>
-                  <Button variant="outline" className="w-full mt-4" onClick={handleLogout}>
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link to="/login">
-                    <Button variant="outline" className="w-full mt-4">
-                      Log In
+              {!loading ? (
+                user ? (
+                  <>
+                    <Link to="/account" className="text-base font-medium transition-colors hover:text-primary">
+                      Account Settings
+                    </Link>
+                    <Button variant="outline" className="w-full mt-4" onClick={handleLogout}>
+                      Logout
                     </Button>
-                  </Link>
-                  <Link to="/register">
-                    <Button className="w-full">Get Started</Button>
-                  </Link>
-                </>
-              )}
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login">
+                      <Button variant="outline" className="w-full mt-4">
+                        Log In
+                      </Button>
+                    </Link>
+                    <Link to="/register">
+                      <Button className="w-full">Get Started</Button>
+                    </Link>
+                  </>
+                )
+              ) : null}
             </div>
           </SheetContent>
         </Sheet>
