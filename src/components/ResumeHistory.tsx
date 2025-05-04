@@ -73,11 +73,32 @@ export function ResumeHistory() {
         throw error;
       }
 
+      // Safely parse JSON to ensure we're getting clean data
       const text = await data.text();
-      return JSON.parse(text);
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error("Error parsing analysis data:", parseError);
+        throw new Error("Unable to parse analysis data");
+      }
     } catch (error) {
       console.error("Error fetching analysis data:", error);
       throw error;
+    }
+  };
+
+  const cleanTextContent = (text: string) => {
+    // Remove any non-printable characters and ensure text is clean
+    try {
+      // Try to parse if it's JSON
+      const parsed = JSON.parse(text);
+      // If it's JSON, stringify it with proper formatting
+      return JSON.stringify(parsed, null, 2);
+    } catch (e) {
+      // If it's not JSON, just clean the text
+      return text
+        .replace(/[^\x20-\x7E\r\n\t]/g, '') // Remove non-printable characters
+        .trim();
     }
   };
 
@@ -95,9 +116,9 @@ export function ResumeHistory() {
         throw error;
       }
 
-      // Convert the blob to text
+      // Convert the blob to text and clean it
       const text = await data.text();
-      setResumeContent(text);
+      setResumeContent(cleanTextContent(text));
       
       // Fetch and set the analysis data
       const analysis = await fetchAnalysisData(resume.optimized_resume_path);
@@ -129,8 +150,12 @@ export function ResumeHistory() {
         throw error;
       }
 
-      // Create a download link and trigger download
-      const blob = new Blob([data], { type: "text/plain" });
+      // Clean the text content
+      const text = await data.text();
+      const cleanedText = cleanTextContent(text);
+
+      // Create a download link with the cleaned text
+      const blob = new Blob([cleanedText], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -234,14 +259,14 @@ export function ResumeHistory() {
           {/* Score Card */}
           {analysisData && (
             <ResumeScoreCard 
-              score={analysisData.atsScore}
+              score={analysisData.atsScore || analysisData.optimizationScore}
               metrics={{
-                keywordMatch: analysisData.metrics.keywordMatch,
-                formatCompliance: analysisData.metrics.formatCompliance,
-                experienceMatch: analysisData.metrics.experienceMatch,
-                skillsRelevance: analysisData.metrics.skillsRelevance,
+                keywordMatch: analysisData.metrics?.keywordMatch || 0,
+                formatCompliance: analysisData.metrics?.formatCompliance || 0,
+                experienceMatch: analysisData.metrics?.experienceMatch || 0,
+                skillsRelevance: analysisData.metrics?.skillsRelevance || 0,
               }}
-              improvementSuggestions={analysisData.improvementSuggestions}
+              improvementSuggestions={analysisData.improvementSuggestions || []}
             />
           )}
 
