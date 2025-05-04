@@ -8,7 +8,7 @@ import { Mamoth } from "https://deno.land/x/mamoth@v0.0.7/mod.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = 'https://apaiwmvjugoauwdnemvv.supabase.co';
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') || '';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,7 +30,7 @@ serve(async (req) => {
     }
     
     if (!supabaseServiceKey) {
-      console.error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable");
+      console.error("Missing SERVICE_ROLE_KEY environment variable");
       throw new Error("Server configuration error: Missing Supabase service key");
     }
 
