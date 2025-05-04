@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getUserData = async () => {
@@ -75,7 +76,7 @@ const Dashboard = () => {
               <p className="text-muted-foreground mb-4">
                 Upload your resume and a job description to get ATS optimization.
               </p>
-              <Button>Create New</Button>
+              <Button onClick={() => navigate("/resume")}>Create New</Button>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -83,7 +84,7 @@ const Dashboard = () => {
               <p className="text-muted-foreground mb-4">
                 View and manage your previously optimized resumes.
               </p>
-              <Button variant="outline">View History</Button>
+              <Button variant="outline" onClick={() => navigate("/resume?tab=history")}>View History</Button>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -91,7 +92,7 @@ const Dashboard = () => {
               <p className="text-muted-foreground mb-4">
                 Update your profile and account preferences.
               </p>
-              <Button variant="outline">Settings</Button>
+              <Button variant="outline" onClick={() => navigate("/account")}>Settings</Button>
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ import Pricing from "./pages/Pricing";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
+import ResumeOptimizer from "./pages/ResumeOptimizer";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/resume" element={<ResumeOptimizer />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

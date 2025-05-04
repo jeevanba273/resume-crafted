@@ -78,6 +78,39 @@ export type Database = {
         }
         Relationships: []
       }
+      resume_optimizations: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_description: string | null
+          optimization_score: number | null
+          optimized_resume_path: string | null
+          original_resume_path: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_description?: string | null
+          optimization_score?: number | null
+          optimized_resume_path?: string | null
+          original_resume_path: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_description?: string | null
+          optimization_score?: number | null
+          optimized_resume_path?: string | null
+          original_resume_path?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
