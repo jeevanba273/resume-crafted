@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle 
 } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface ResumeUploaderProps {
   onOptimizationComplete?: (data: any) => void;
@@ -24,6 +25,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
   const [jobDescription, setJobDescription] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,6 +39,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
         file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       ) {
         setResumeFile(file);
+        setErrorMessage(null);
       } else {
         toast({
           title: "Invalid file type",
@@ -53,6 +56,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     
     if (!resumeFile) {
       toast({
@@ -76,7 +80,11 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
     
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        throw new Error(`Authentication error: ${userError.message}`);
+      }
       
       if (!user) {
         throw new Error("User not authenticated");
@@ -87,6 +95,8 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
       const fileExt = resumeFile.name.split('.').pop();
       const filePath = `${user.id}/original-${timestamp}.${fileExt}`;
 
+      console.log("Uploading resume to storage:", filePath);
+      
       // Upload the file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('resumes')
@@ -96,6 +106,8 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
         throw new Error(`Error uploading file: ${uploadError.message}`);
       }
 
+      console.log("Resume uploaded successfully, calling optimize-resume function");
+      
       // Call the optimize-resume function
       const { data: optimizationData, error: optimizationError } = await supabase.functions
         .invoke('optimize-resume', {
@@ -108,9 +120,17 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
         });
 
       if (optimizationError) {
+        console.error("Function error:", optimizationError);
         throw new Error(`Error optimizing resume: ${optimizationError.message}`);
       }
 
+      if (!optimizationData || !optimizationData.success) {
+        const errorMsg = optimizationData?.error || "Unknown error occurred during optimization";
+        console.error("Optimization failed:", errorMsg);
+        throw new Error(`Resume optimization failed: ${errorMsg}`);
+      }
+
+      console.log("Resume optimization completed successfully:", optimizationData);
       setOptimizationResult(optimizationData);
       
       toast({
@@ -123,8 +143,9 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
       }
     } catch (error: any) {
       console.error("Error in resume upload process:", error);
+      setErrorMessage(error.message);
       toast({
-        title: "Error",
+        title: "Error optimizing resume",
         description: error.message,
         variant: "destructive",
       });
@@ -142,6 +163,13 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>Error optimizing resume</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <label htmlFor="resume" className="block text-sm font-medium text-gray-700">
@@ -210,6 +238,20 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
             )}
           </Button>
         </form>
+
+        {optimizationResult && (
+          <div className="mt-6 p-4 bg-green-50 border border-green-100 rounded-md">
+            <h3 className="text-lg font-medium text-green-800 mb-2">
+              Resume Optimized Successfully!
+            </h3>
+            <p className="text-green-700 mb-1">
+              <strong>Optimization Score:</strong> {optimizationResult.optimizationScore}%
+            </p>
+            <p className="text-sm text-green-600">
+              Your optimized resume is now available in the Resume History tab
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

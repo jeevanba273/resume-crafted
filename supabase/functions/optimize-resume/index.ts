@@ -21,7 +21,35 @@ serve(async (req) => {
   }
 
   try {
-    const { originalResumeUrl, jobDescription, userId, fileType } = await req.json();
+    console.log("Edge function called: optimize-resume");
+    
+    if (!openAIApiKey) {
+      console.error("Missing OPENAI_API_KEY environment variable");
+      throw new Error("Server configuration error: Missing OpenAI API key");
+    }
+    
+    if (!supabaseServiceKey) {
+      console.error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable");
+      throw new Error("Server configuration error: Missing Supabase service key");
+    }
+
+    // Parse the request body
+    let requestData;
+    try {
+      requestData = await req.json();
+      console.log("Request received:", JSON.stringify(requestData));
+    } catch (e) {
+      console.error("Error parsing request JSON:", e);
+      throw new Error("Invalid JSON in request body");
+    }
+
+    const { originalResumeUrl, jobDescription, userId, fileType } = requestData;
+    
+    if (!originalResumeUrl || !jobDescription || !userId || !fileType) {
+      console.error("Missing required fields:", { originalResumeUrl, jobDescription, userId, fileType });
+      throw new Error("Missing required fields: originalResumeUrl, jobDescription, userId, or fileType");
+    }
+    
     console.log("Processing resume for user:", userId);
     console.log("Original resume URL:", originalResumeUrl);
     
@@ -29,6 +57,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Download the original resume file
+    console.log("Attempting to download file from storage");
     const { data: fileData, error: downloadError } = await supabase
       .storage
       .from('resumes')
@@ -39,46 +68,77 @@ serve(async (req) => {
       throw new Error(`Error downloading resume: ${downloadError?.message || 'File not found'}`);
     }
     
+    console.log("File downloaded successfully, extracting text");
+    
     // Extract text from the resume depending on file type
     let resumeText = "";
     if (fileType === 'application/pdf') {
-      const pdfData = await fileData.arrayBuffer();
-      const pdfText = await extract(new Uint8Array(pdfData));
-      resumeText = pdfText.text;
+      try {
+        const pdfData = await fileData.arrayBuffer();
+        const pdfText = await extract(new Uint8Array(pdfData));
+        resumeText = pdfText.text;
+      } catch (e) {
+        console.error("Error extracting text from PDF:", e);
+        throw new Error(`Failed to extract text from PDF: ${e.message}`);
+      }
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                fileType === 'application/msword') {
-      const docData = await fileData.arrayBuffer();
-      const result = await Mamoth.extractRawText({ arrayBuffer: docData });
-      resumeText = result.value;
+      try {
+        const docData = await fileData.arrayBuffer();
+        const result = await Mamoth.extractRawText({ arrayBuffer: docData });
+        resumeText = result.value;
+      } catch (e) {
+        console.error("Error extracting text from Word document:", e);
+        throw new Error(`Failed to extract text from Word document: ${e.message}`);
+      }
     } else {
+      console.error("Unsupported file type:", fileType);
       throw new Error("Unsupported file type");
     }
 
+    if (!resumeText || resumeText.trim().length === 0) {
+      console.error("Failed to extract text from document");
+      throw new Error("Could not extract any text from the uploaded document");
+    }
+
     console.log("Extracted resume text length:", resumeText.length);
+    console.log("Calling OpenAI API to optimize the resume");
     
     // Call OpenAI API to optimize the resume
-    const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a professional resume optimizer that helps job seekers tailor their resumes to specific job descriptions. Your task is to analyze the resume and job description, then provide an optimized version of the resume that better aligns with the job requirements. Maintain the same format but improve content.'
-          },
-          {
-            role: 'user', 
-            content: `Here is my resume:\n\n${resumeText}\n\nHere is the job description I'm applying for:\n\n${jobDescription}\n\nPlease optimize my resume for this job.`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 4000,
-      }),
-    });
+    let openAiResponse;
+    try {
+      openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional resume optimizer that helps job seekers tailor their resumes to specific job descriptions. Your task is to analyze the resume and job description, then provide an optimized version of the resume that better aligns with the job requirements. Maintain the same format but improve content.'
+            },
+            {
+              role: 'user', 
+              content: `Here is my resume:\n\n${resumeText}\n\nHere is the job description I'm applying for:\n\n${jobDescription}\n\nPlease optimize my resume for this job.`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 4000,
+        }),
+      });
+    } catch (e) {
+      console.error("Error calling OpenAI API:", e);
+      throw new Error(`Failed to call OpenAI API: ${e.message}`);
+    }
+
+    if (!openAiResponse.ok) {
+      const errorData = await openAiResponse.text();
+      console.error("OpenAI API returned an error:", openAiResponse.status, errorData);
+      throw new Error(`OpenAI API error: ${openAiResponse.status} ${errorData}`);
+    }
 
     const openAiData = await openAiResponse.json();
     
@@ -107,10 +167,13 @@ serve(async (req) => {
     });
     
     const optimizationScore = Math.min(100, Math.round((keywordMatches / uniqueKeywords.length) * 100));
+    console.log("Calculated optimization score:", optimizationScore);
     
     // Generate a filename for the optimized resume
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const optimizedResumeFileName = `${userId}/optimized-${timestamp}.txt`;
+    
+    console.log("Saving optimized resume to storage:", optimizedResumeFileName);
     
     // Save the optimized resume
     const { error: uploadError } = await supabase
@@ -129,7 +192,10 @@ serve(async (req) => {
       .from('resumes')
       .getPublicUrl(optimizedResumeFileName);
     
+    console.log("Optimized resume saved, URL:", optimizedResumeUrl);
+    
     // Create an entry in the resume_optimizations table
+    console.log("Saving optimization record to database");
     const { error: dbError } = await supabase
       .from('resume_optimizations')
       .insert({
@@ -145,6 +211,8 @@ serve(async (req) => {
       throw new Error(`Error saving to database: ${dbError.message}`);
     }
 
+    console.log("Resume optimization complete, returning results");
+    
     // Return the optimization results
     return new Response(
       JSON.stringify({
