@@ -24,7 +24,6 @@ export function ResumeHistory() {
   const [resumeHistory, setResumeHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedResume, setSelectedResume] = useState<any>(null);
-  const [resumeContent, setResumeContent] = useState<string>("");
   const [analysisData, setAnalysisData] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { toast } = useToast();
@@ -106,19 +105,6 @@ export function ResumeHistory() {
     try {
       setSelectedResume(resume);
       setIsLoading(true);
-
-      // Download the resume content
-      const { data, error } = await supabase.storage
-        .from("resumes")
-        .download(resume.original_resume_path);
-
-      if (error) {
-        throw error;
-      }
-
-      // Convert the blob to text and clean it
-      const text = await data.text();
-      setResumeContent(cleanTextContent(text));
       
       // Fetch and set the analysis data
       const analysis = await fetchAnalysisData(resume.optimized_resume_path);
@@ -150,16 +136,15 @@ export function ResumeHistory() {
         throw error;
       }
 
-      // Clean the text content
-      const text = await data.text();
-      const cleanedText = cleanTextContent(text);
-
-      // Create a download link with the cleaned text
-      const blob = new Blob([cleanedText], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
+      // Create a download link for the file
+      const url = URL.createObjectURL(data);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `resume-${new Date().toISOString().slice(0, 10)}.txt`;
+      
+      // Extract file extension from path
+      const fileExtension = resume.original_resume_path.split('.').pop();
+      
+      link.download = `resume-${new Date(resume.created_at).toISOString().slice(0, 10)}.${fileExtension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -174,6 +159,43 @@ export function ResumeHistory() {
       toast({
         title: "Error",
         description: "Could not download resume",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadAnalysis = async (resume: any) => {
+    try {
+      setIsLoading(true);
+
+      // Get the analysis data
+      const analysis = await fetchAnalysisData(resume.optimized_resume_path);
+      
+      // Format the analysis data as clean text
+      const analysisText = JSON.stringify(analysis, null, 2);
+
+      // Create a download link for the analysis
+      const blob = new Blob([analysisText], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `analysis-${new Date(resume.created_at).toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download started",
+        description: "Analysis results are being downloaded",
+      });
+    } catch (error) {
+      console.error("Error downloading analysis:", error);
+      toast({
+        title: "Error",
+        description: "Could not download analysis results",
         variant: "destructive",
       });
     } finally {
@@ -234,11 +256,20 @@ export function ResumeHistory() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleDownloadAnalysis(resume)}
+                      disabled={isLoading}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Analysis
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleDownloadResume(resume)}
                       disabled={isLoading}
                     >
                       <Download className="h-4 w-4 mr-1" />
-                      Download
+                      Resume
                     </Button>
                   </div>
                 </TableCell>
@@ -269,14 +300,6 @@ export function ResumeHistory() {
               improvementSuggestions={analysisData.improvementSuggestions || []}
             />
           )}
-
-          {/* Original Resume Content */}
-          <div className="mt-6">
-            <h3 className="font-semibold text-lg mb-2">Your Original Resume</h3>
-            <div className="bg-gray-50 border rounded-md p-4 whitespace-pre-wrap font-mono text-sm overflow-auto max-h-96">
-              {resumeContent}
-            </div>
-          </div>
           
           {/* Missing Keywords Section */}
           {analysisData && analysisData.missingKeywords && (
@@ -308,10 +331,21 @@ export function ResumeHistory() {
               Close
             </Button>
             {selectedResume && (
-              <Button onClick={() => handleDownloadResume(selectedResume)}>
-                <Download className="h-4 w-4 mr-2" />
-                Download Resume
-              </Button>
+              <div className="space-x-2">
+                <Button 
+                  onClick={() => handleDownloadAnalysis(selectedResume)}
+                  variant="outline"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Analysis
+                </Button>
+                <Button 
+                  onClick={() => handleDownloadResume(selectedResume)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Resume
+                </Button>
+              </div>
             )}
           </div>
         </DialogContent>
