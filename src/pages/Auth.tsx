@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -49,13 +49,13 @@ const Auth = () => {
   });
 
   // Check if user is already logged in
-  useState(() => {
+  useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
     };
     checkSession();
-  });
+  }, []);
 
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
