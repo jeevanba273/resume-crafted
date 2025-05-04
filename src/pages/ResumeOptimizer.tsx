@@ -72,8 +72,8 @@ export default function ResumeOptimizer() {
           <div className="bg-white rounded-xl shadow-sm p-2 mb-8">
             <Tabs defaultValue="create" className="w-full">
               <TabsList className="w-full mb-6 grid grid-cols-2">
-                <TabsTrigger value="create" className="py-3 text-base">Create New</TabsTrigger>
-                <TabsTrigger value="history" className="py-3 text-base">Resume History</TabsTrigger>
+                <TabsTrigger value="create" className="py-3 text-base flex items-center justify-center h-full">Create New</TabsTrigger>
+                <TabsTrigger value="history" className="py-3 text-base flex items-center justify-center h-full">Resume History</TabsTrigger>
               </TabsList>
               <TabsContent value="create" className="px-2 py-4">
                 <ResumeUploader />
