@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,8 +135,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
       toast({
         title: "Resume optimized successfully!",
         description: `Optimization score: ${optimizationData.optimizationScore}%`,
-        // Fix: using "default" instead of "success" as variant
-        variant: "default", 
+        variant: "success", 
       });
       
       if (onOptimizationComplete) {
