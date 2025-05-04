@@ -2,8 +2,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
-// Using a different PDF parser library that works in Deno
-import { parse as parsePdf } from "https://deno.land/x/pdfparse@0.0.4/mod.ts";
+// Using pdf-parse which works with Deno
+import { default as parsePdf } from "https://esm.sh/pdf-parse@1.1.1";
 import { Mamoth } from "https://deno.land/x/mamoth@v0.0.7/mod.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -77,6 +77,7 @@ serve(async (req) => {
       try {
         const pdfData = await fileData.arrayBuffer();
         const pdfBytes = new Uint8Array(pdfData);
+        // Use the new PDF parser
         const parsed = await parsePdf(pdfBytes);
         resumeText = parsed.text;
       } catch (e) {
