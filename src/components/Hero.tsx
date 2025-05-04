@@ -1,4 +1,3 @@
-
 import { ArrowRight, FileCheck, Clock, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
