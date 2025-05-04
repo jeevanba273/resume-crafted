@@ -114,6 +114,13 @@
   animation: gradient 3s ease infinite;
 }
 
+.enhanced-gradient {
+  background: linear-gradient(90deg, #D3E4FD, #2563eb, #4f46e5, #7c3aed);
+  background-size: 300% auto;
+  background-clip: text;
+  animation: gradient 4s ease infinite;
+}
+
 @keyframes gradient {
   0% {
     background-position: 0% 50%;
