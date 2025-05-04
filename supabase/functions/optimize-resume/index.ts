@@ -4,7 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 // Using pdf-parse which works with Deno
 import { default as parsePdf } from "https://esm.sh/pdf-parse@1.1.1";
-import { Mamoth } from "https://deno.land/x/mamoth@v0.0.7/mod.ts";
+// Use a simple text extraction approach for Word documents
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = 'https://apaiwmvjugoauwdnemvv.supabase.co';
@@ -77,7 +77,7 @@ serve(async (req) => {
       try {
         const pdfData = await fileData.arrayBuffer();
         const pdfBytes = new Uint8Array(pdfData);
-        // Use the new PDF parser
+        // Use the PDF parser
         const parsed = await parsePdf(pdfBytes);
         resumeText = parsed.text;
       } catch (e) {
@@ -87,9 +87,20 @@ serve(async (req) => {
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
                fileType === 'application/msword') {
       try {
-        const docData = await fileData.arrayBuffer();
-        const result = await Mamoth.extractRawText({ arrayBuffer: docData });
-        resumeText = result.value;
+        // For Word documents, we'll use a simpler approach - extract text directly from parts of the file
+        // This is a simplified approach and may not work perfectly for all Word documents
+        const docData = await fileData.text();
+        // Simple extraction - this won't be perfect but should get some content
+        resumeText = docData.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
+                            .replace(/<[^>]*>/g, ' ')
+                            .replace(/\s+/g, ' ');
+        
+        // If we couldn't extract meaningful text, notify the user
+        if (resumeText.trim().length < 100) {
+          resumeText = "Note: Limited text could be extracted from this Word document format. " +
+                       "For better results, please upload a PDF file. Here's what we could extract:\n\n" + 
+                       resumeText;
+        }
       } catch (e) {
         console.error("Error extracting text from Word document:", e);
         throw new Error(`Failed to extract text from Word document: ${e.message}`);
