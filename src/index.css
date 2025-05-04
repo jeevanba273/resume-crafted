@@ -115,12 +115,12 @@
 }
 
 .enhanced-gradient {
-  background: linear-gradient(90deg, #D3E4FD, #a2c6fa, #6ea6f6, #2563eb, #4f46e5, #7c3aed);
-  background-size: 400% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
+  background-image: linear-gradient(90deg, #33C3F0, #1EAEDB, #8B5CF6, #D946EF, #F97316, #9b87f5, #33C3F0);
+  background-size: 300% auto;
+  animation: gradient-wave 12s linear infinite;
   color: transparent;
-  animation: gradient-wave 8s ease infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 @keyframes gradient {
@@ -139,16 +139,19 @@
   0% {
     background-position: 0% 50%;
   }
-  25% {
-    background-position: 50% 25%;
+  20% {
+    background-position: 20% 60%;
   }
-  50% {
-    background-position: 100% 50%;
+  40% {
+    background-position: 40% 80%;
   }
-  75% {
-    background-position: 50% 75%; 
+  60% {
+    background-position: 60% 50%;
   }
+  80% {
+    background-position: 80% 30%;
+  } 
   100% {
-    background-position: 0% 50%;
+    background-position: 100% 50%;
   }
 }
