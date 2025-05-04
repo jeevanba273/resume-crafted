@@ -3,8 +3,15 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [user, setUser] = useState<any>(null);
@@ -32,6 +39,10 @@ const Navbar = () => {
     { name: "Pricing", href: "/pricing" },
     { name: "How it Works", href: "/how-it-works" },
   ];
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <header className="border-b bg-white shadow-sm">
@@ -72,9 +83,34 @@ const Navbar = () => {
         </nav>
         <div className="hidden md:flex items-center gap-4">
           {user ? (
-            <Link to="/dashboard">
-              <Button size="sm">Dashboard</Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <div className="px-2 py-1.5 text-sm font-medium">
+                  {user.email}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard" className="cursor-pointer w-full">
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/account" className="cursor-pointer w-full">
+                    Account Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
               <Link to="/login">
@@ -117,9 +153,14 @@ const Navbar = () => {
                 </Link>
               )}
               {user ? (
-                <Link to="/dashboard">
-                  <Button className="w-full mt-4">Dashboard</Button>
-                </Link>
+                <>
+                  <Link to="/account" className="text-base font-medium transition-colors hover:text-primary">
+                    Account Settings
+                  </Link>
+                  <Button variant="outline" className="w-full mt-4" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <>
                   <Link to="/login">
