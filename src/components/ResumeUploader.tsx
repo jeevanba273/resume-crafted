@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, FileText } from "lucide-react";
+import { Loader2, Upload, FileText, Check, AlertTriangle } from "lucide-react";
 import { 
   Card,
   CardContent,
@@ -15,16 +15,24 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 interface ResumeUploaderProps {
   onOptimizationComplete?: (data: any) => void;
+}
+
+interface OptimizationResult {
+  optimizationScore: number;
+  missingKeywords: string[];
+  improvementSuggestions: string[];
+  summaryOfChanges: string;
 }
 
 export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [optimizationResult, setOptimizationResult] = useState<any>(null);
+  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,10 +142,13 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
         console.log("Resume optimization completed successfully:", optimizationData);
         setOptimizationResult(optimizationData);
         
+        const scoreVariant = optimizationData.optimizationScore >= 80 ? "success" : 
+                            optimizationData.optimizationScore >= 60 ? "default" : "destructive";
+        
         toast({
-          title: "Resume optimized successfully!",
-          description: `Optimization score: ${optimizationData.optimizationScore}%`,
-          variant: "success", 
+          title: "Resume analysis complete",
+          description: `ATS score: ${optimizationData.optimizationScore}%`,
+          variant: scoreVariant === "success" ? "success" : "default", 
         });
         
         if (onOptimizationComplete) {
@@ -156,7 +167,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
       console.error("Error in resume upload process:", error);
       setErrorMessage(error.message);
       toast({
-        title: "Error optimizing resume",
+        title: "Error analyzing resume",
         description: error.message,
         variant: "destructive",
       });
@@ -165,18 +176,24 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
     }
   };
 
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-amber-600"; 
+    return "text-red-600";
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto shadow-lg border-2 border-gray-100">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-        <CardTitle className="text-2xl font-bold text-gray-800">Optimize Your Resume</CardTitle>
+        <CardTitle className="text-2xl font-bold text-gray-800">Analyze Your Resume</CardTitle>
         <CardDescription className="text-gray-600">
-          Upload your resume and enter the job description to get an AI-optimized version
+          Upload your resume and job description to get ATS optimization feedback
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
         {errorMessage && (
           <Alert variant="destructive" className="mb-4">
-            <AlertTitle>Error optimizing resume</AlertTitle>
+            <AlertTitle>Error analyzing resume</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         )}
@@ -239,28 +256,58 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Optimizing Resume...
+                Analyzing Resume...
               </>
             ) : (
               <>
                 <Upload className="mr-2 h-5 w-5" />
-                Optimize Resume
+                Analyze Resume
               </>
             )}
           </Button>
         </form>
 
         {optimizationResult && (
-          <div className="mt-6 p-4 bg-green-50 border border-green-100 rounded-md">
-            <h3 className="text-lg font-medium text-green-800 mb-2">
-              Resume Optimized Successfully!
-            </h3>
-            <p className="text-green-700 mb-1">
-              <strong>Optimization Score:</strong> {optimizationResult.optimizationScore}%
-            </p>
-            <p className="text-sm text-green-600">
-              Your optimized resume is now available in the Resume History tab
-            </p>
+          <div className="mt-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-800">Resume ATS Analysis</h3>
+              <div className="flex items-center">
+                <span className="text-sm mr-2">ATS Score:</span>
+                <span className={`text-xl font-bold ${getScoreColor(optimizationResult.optimizationScore)}`}>
+                  {optimizationResult.optimizationScore}%
+                </span>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Missing Keywords</h4>
+                <div className="flex flex-wrap gap-2">
+                  {optimizationResult.missingKeywords.map((keyword, idx) => (
+                    <Badge key={idx} variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Suggested Improvements</h4>
+                <ul className="space-y-2">
+                  {optimizationResult.improvementSuggestions.map((suggestion, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm">
+                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <span>{suggestion}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="p-4 bg-gray-50 rounded-md border border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Summary of Changes</h4>
+                <p className="text-sm text-gray-600">{optimizationResult.summaryOfChanges}</p>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

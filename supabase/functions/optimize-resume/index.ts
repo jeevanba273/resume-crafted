@@ -71,7 +71,7 @@ serve(async (req) => {
     
     console.log("File downloaded successfully, extracting text");
     
-    // Extract text from the resume (simplified approach)
+    // Extract text from the resume
     let resumeText = "";
     
     try {
@@ -81,30 +81,26 @@ serve(async (req) => {
           fileType === 'application/msword') {
         
         // Try to extract text from the file
-        let extractedText = "";
-        
         try {
           // Convert file to text as best as possible
-          extractedText = await fileData.text();
+          resumeText = await fileData.text();
         } catch (textError) {
           console.error("Error extracting text directly:", textError);
           // Fall back to binary to string conversion
           const buffer = await fileData.arrayBuffer();
           const bytes = new Uint8Array(buffer);
-          extractedText = new TextDecoder().decode(bytes);
+          resumeText = new TextDecoder().decode(bytes);
         }
         
         // Clean up the extracted text
-        resumeText = extractedText
+        resumeText = resumeText
           .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')  // Remove control characters
           .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, ' ')  // Keep only basic Latin and Latin-1 Supplement chars
           .replace(/\s+/g, ' ');  // Normalize whitespace
         
         if (resumeText.trim().length < 100) {
           console.log("Extracted text is very short, may be incomplete");
-          resumeText = "Note: Limited text could be extracted from this document format. " +
-                       "For better results, please upload a plain text version. " +
-                       "Here's what we could extract:\n\n" + resumeText;
+          throw new Error("Limited text could be extracted from this document format. For better results, please upload a plain text version.");
         }
       } else {
         console.error("Unsupported file type:", fileType);
@@ -121,9 +117,9 @@ serve(async (req) => {
     }
 
     console.log("Extracted resume text length:", resumeText.length);
-    console.log("Calling OpenAI API to optimize the resume");
+    console.log("Calling OpenAI API to analyze the resume");
     
-    // Call OpenAI API to optimize the resume
+    // Call OpenAI API to analyze the resume against the job description
     let openAiResponse;
     try {
       openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -137,15 +133,29 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a professional resume optimizer that helps job seekers tailor their resumes to specific job descriptions. Your task is to analyze the resume and job description, then provide an optimized version of the resume that better aligns with the job requirements. Maintain the same format but improve content.'
+              content: `You are an ATS (Applicant Tracking System) expert that helps job seekers improve their existing resumes. 
+              Analyze the resume against the job description and provide:
+              1. An ATS compatibility score (0-100)
+              2. A list of missing keywords from the job description that should be added to the resume
+              3. Specific suggestions for improvements (what to add, change, or remove)
+              4. A short summary of recommended changes
+              
+              Format your response as JSON with the following structure:
+              {
+                "atsScore": number,
+                "missingKeywords": ["keyword1", "keyword2", ...],
+                "improvementSuggestions": ["suggestion1", "suggestion2", ...],
+                "summaryOfChanges": "concise paragraph with recommendations"
+              }`
             },
             {
               role: 'user', 
-              content: `Here is my resume:\n\n${resumeText}\n\nHere is the job description I'm applying for:\n\n${jobDescription}\n\nPlease optimize my resume for this job.`
+              content: `Here is my resume:\n\n${resumeText}\n\nHere is the job description I'm applying for:\n\n${jobDescription}\n\nProvide analysis and specific improvements.`
             }
           ],
           temperature: 0.3,
-          max_tokens: 4000,
+          max_tokens: 2000,
+          response_format: { type: "json_object" }
         }),
       });
     } catch (e) {
@@ -163,55 +173,42 @@ serve(async (req) => {
     
     if (!openAiData.choices || !openAiData.choices[0]) {
       console.error("Unexpected OpenAI response:", openAiData);
-      throw new Error("Failed to get optimization from OpenAI");
+      throw new Error("Failed to get analysis from OpenAI");
     }
     
-    const optimizedText = openAiData.choices[0].message.content;
-    console.log("Optimized resume received from OpenAI");
+    let analysisResult;
+    try {
+      analysisResult = JSON.parse(openAiData.choices[0].message.content);
+      console.log("Analysis received from OpenAI:", analysisResult);
+    } catch (e) {
+      console.error("Error parsing OpenAI response:", e);
+      throw new Error("Invalid response format from OpenAI");
+    }
     
-    // Calculate a simple optimization score based on keyword matching
-    const keywords = jobDescription
-      .toLowerCase()
-      .split(/\W+/)
-      .filter(word => word.length > 3)
-      .filter(word => !['and', 'the', 'that', 'this', 'with', 'from', 'have'].includes(word));
-    
-    const uniqueKeywords = [...new Set(keywords)];
-    let keywordMatches = 0;
-    
-    uniqueKeywords.forEach(keyword => {
-      if (optimizedText.toLowerCase().includes(keyword)) {
-        keywordMatches++;
-      }
-    });
-    
-    const optimizationScore = Math.min(100, Math.round((keywordMatches / uniqueKeywords.length) * 100));
-    console.log("Calculated optimization score:", optimizationScore);
-    
-    // Generate a filename for the optimized resume
+    // Generate a filename for the analysis
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const optimizedResumeFileName = `${userId}/optimized-${timestamp}.txt`;
+    const analysisFileName = `${userId}/analysis-${timestamp}.json`;
     
-    console.log("Saving optimized resume to storage:", optimizedResumeFileName);
+    console.log("Saving analysis to storage:", analysisFileName);
     
-    // Save the optimized resume
+    // Save the analysis
     const { error: uploadError } = await supabase
       .storage
       .from('resumes')
-      .upload(optimizedResumeFileName, new Blob([optimizedText], { type: 'text/plain' }));
+      .upload(analysisFileName, new Blob([JSON.stringify(analysisResult)], { type: 'application/json' }));
     
     if (uploadError) {
-      console.error("Error uploading optimized resume:", uploadError);
-      throw new Error(`Error uploading optimized resume: ${uploadError.message}`);
+      console.error("Error uploading analysis:", uploadError);
+      throw new Error(`Error uploading analysis: ${uploadError.message}`);
     }
     
-    // Get the URL for the optimized resume
-    const { data: { publicUrl: optimizedResumeUrl } } = supabase
+    // Get the URL for the analysis file
+    const { data: { publicUrl: analysisUrl } } = supabase
       .storage
       .from('resumes')
-      .getPublicUrl(optimizedResumeFileName);
+      .getPublicUrl(analysisFileName);
     
-    console.log("Optimized resume saved, URL:", optimizedResumeUrl);
+    console.log("Analysis saved, URL:", analysisUrl);
     
     // Create an entry in the resume_optimizations table
     console.log("Saving optimization record to database");
@@ -220,9 +217,9 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         original_resume_path: originalResumeUrl,
-        optimized_resume_path: optimizedResumeFileName,
+        optimized_resume_path: analysisFileName,
         job_description: jobDescription,
-        optimization_score: optimizationScore
+        optimization_score: analysisResult.atsScore
       });
     
     if (dbError) {
@@ -230,15 +227,17 @@ serve(async (req) => {
       throw new Error(`Error saving to database: ${dbError.message}`);
     }
 
-    console.log("Resume optimization complete, returning results");
+    console.log("Resume analysis complete, returning results");
     
     // Return the optimization results
     return new Response(
       JSON.stringify({
         success: true,
-        optimizationScore,
-        optimizedResumeUrl,
-        optimizedText
+        optimizationScore: analysisResult.atsScore,
+        analysisUrl,
+        missingKeywords: analysisResult.missingKeywords,
+        improvementSuggestions: analysisResult.improvementSuggestions,
+        summaryOfChanges: analysisResult.summaryOfChanges
       }), 
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
