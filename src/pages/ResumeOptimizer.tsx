@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ResumeUploader } from "@/components/ResumeUploader";
 import { ResumeHistory } from "@/components/ResumeHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +7,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
 
 export default function ResumeOptimizer() {
   const [user, setUser] = useState<any>(null);
@@ -50,29 +49,40 @@ export default function ResumeOptimizer() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <div className="animate-pulse space-y-2 flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-blue-200"></div>
+          <div className="h-4 w-24 bg-blue-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <div className="flex-1">
-        <div className="container px-4 md:px-6 py-10">
-          <h1 className="text-3xl font-bold mb-6">Resume Optimizer</h1>
-          <Tabs defaultValue="create" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="create">Create New</TabsTrigger>
-              <TabsTrigger value="history">Resume History</TabsTrigger>
-            </TabsList>
-            <TabsContent value="create">
-              <ResumeUploader />
-            </TabsContent>
-            <TabsContent value="history">
-              <ResumeHistory />
-            </TabsContent>
-          </Tabs>
+        <div className="container px-4 md:px-6 py-12 max-w-5xl mx-auto">
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">Resume Optimizer</h1>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Tailor your resume to specific job descriptions and increase your chances of getting an interview.
+            </p>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm p-2 mb-8">
+            <Tabs defaultValue="create" className="w-full">
+              <TabsList className="w-full mb-6 grid grid-cols-2">
+                <TabsTrigger value="create" className="py-3 text-base">Create New</TabsTrigger>
+                <TabsTrigger value="history" className="py-3 text-base">Resume History</TabsTrigger>
+              </TabsList>
+              <TabsContent value="create" className="px-2 py-4">
+                <ResumeUploader />
+              </TabsContent>
+              <TabsContent value="history" className="px-2 py-4">
+                <ResumeHistory />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
       <Footer />
