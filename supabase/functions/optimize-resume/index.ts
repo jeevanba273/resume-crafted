@@ -2,7 +2,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
-import { parse as parsePdf } from "https://deno.land/x/pdfparser@v1.0.0/mod.ts";
+// Using a different PDF parser library that works in Deno
+import { parse as parsePdf } from "https://deno.land/x/pdfparse@0.0.4/mod.ts";
 import { Mamoth } from "https://deno.land/x/mamoth@v0.0.7/mod.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
