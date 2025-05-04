@@ -34,16 +34,16 @@ const CTA = () => {
           <div className="space-y-6">
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-6">
               <div className="mb-4 flex items-center justify-center">
-                <span className="text-sm font-medium uppercase text-primary">Limited Time Offer</span>
+                <span className="text-sm font-medium uppercase text-primary">100% Free Forever</span>
               </div>
               <div className="mb-2 flex items-center justify-center gap-2">
-                <span className="text-3xl font-bold">₹299</span>
+                <span className="text-3xl font-bold">₹0</span>
                 <span className="text-muted-foreground line-through">₹999</span>
                 <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                  70% OFF
+                  FREE
                 </span>
               </div>
-              <p className="mb-6 text-center text-muted-foreground">One-time payment • Lifetime access</p>
+              <p className="mb-6 text-center text-muted-foreground">No payment required • Lifetime access</p>
               <Link to="/register">
                 <Button size="lg" className="w-full">
                   Get Started Now <ArrowRight className="ml-2 h-4 w-4" />
@@ -52,7 +52,7 @@ const CTA = () => {
             </div>
             
             <p className="text-sm text-muted-foreground">
-              Secure payment via Razorpay • No hidden fees • 7-day money-back guarantee
+              No credit card required • No hidden fees • Full access to all features
             </p>
           </div>
         </div>

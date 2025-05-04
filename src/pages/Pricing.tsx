@@ -25,16 +25,16 @@ const Pricing = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
               <p className="text-lg text-muted-foreground">
-                Get lifetime access to Resume Crafted for a one-time payment - no subscriptions, no hidden fees.
+                Get lifetime access to Resume Crafted completely free - no subscriptions, no hidden fees.
               </p>
             </div>
 
             <div className="max-w-xl mx-auto rounded-xl overflow-hidden shadow-lg border">
               <div className="bg-primary/10 p-8 text-center">
-                <div className="uppercase text-sm font-semibold text-primary mb-2">Early Bird Offer</div>
+                <div className="uppercase text-sm font-semibold text-primary mb-2">100% Free Access</div>
                 <div className="flex justify-center items-baseline mb-4">
-                  <span className="text-5xl font-bold">₹299</span>
-                  <span className="text-lg text-muted-foreground ml-2">one-time</span>
+                  <span className="text-5xl font-bold">₹0</span>
+                  <span className="text-lg text-muted-foreground ml-2">forever</span>
                 </div>
                 <div className="text-muted-foreground">Lifetime access to all features</div>
               </div>
@@ -56,7 +56,7 @@ const Pricing = () => {
                     </Button>
                   </Link>
                   <div className="text-center mt-4 text-sm text-muted-foreground">
-                    Secure payment via Razorpay
+                    No payment information required
                   </div>
                 </div>
               </div>
@@ -67,23 +67,23 @@ const Pricing = () => {
               
               <div className="space-y-6 text-left">
                 <div>
-                  <h3 className="font-medium mb-2">Is this really a one-time payment?</h3>
+                  <h3 className="font-medium mb-2">Is Resume Crafted really free?</h3>
                   <p className="text-muted-foreground">
-                    Yes, pay ₹299 once and get lifetime access to all current features. No recurring charges or hidden fees.
+                    Yes, Resume Crafted is completely free. Get access to all current features at no cost. No recurring charges or hidden fees.
                   </p>
                 </div>
                 
                 <div>
-                  <h3 className="font-medium mb-2">What payment methods do you accept?</h3>
+                  <h3 className="font-medium mb-2">Do I need to provide payment information?</h3>
                   <p className="text-muted-foreground">
-                    We accept all major credit/debit cards, UPI, NetBanking, and mobile wallets through our secure Razorpay payment gateway.
+                    No, you won't need to provide any payment details. Simply create an account and start using all features immediately.
                   </p>
                 </div>
                 
                 <div>
-                  <h3 className="font-medium mb-2">Will there be any additional charges in the future?</h3>
+                  <h3 className="font-medium mb-2">Will there be any charges in the future?</h3>
                   <p className="text-muted-foreground">
-                    No. Once you purchase, you'll have lifetime access to all the current features. Premium features added in the future may be offered as optional upgrades.
+                    No. Resume Crafted will remain free for all users. Premium features added in the future may be offered as optional upgrades.
                   </p>
                 </div>
               </div>

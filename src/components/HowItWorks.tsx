@@ -59,11 +59,11 @@ const HowItWorks = () => {
         <div className="mt-16 text-center">
           <Link to="/register">
             <Button size="lg">
-              Get Started Now for Just ₹299
+              Get Started Now - 100% Free
             </Button>
           </Link>
           <p className="mt-4 text-sm text-muted-foreground">
-            Early Bird Pricing • One-Time Payment • Lifetime Access
+            No Payment Required • Completely Free • Lifetime Access
           </p>
         </div>
       </div>

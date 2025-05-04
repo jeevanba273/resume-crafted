@@ -28,9 +28,9 @@ const Hero = () => {
               </Link>
             </div>
             <div className="mt-6">
-              <p className="font-medium">Early Bird Offer</p>
+              <p className="font-medium">100% Free Service</p>
               <p className="text-lg font-bold">
-                <span className="text-primary">₹299</span> <span className="text-muted-foreground line-through text-sm">₹999</span> Lifetime Access
+                <span className="text-primary">₹0</span> <span className="text-muted-foreground line-through text-sm">₹999</span> Lifetime Access
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-6 mt-6">
