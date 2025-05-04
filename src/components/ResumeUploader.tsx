@@ -136,6 +136,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
       toast({
         title: "Resume optimized successfully!",
         description: `Optimization score: ${optimizationData.optimizationScore}%`,
+        variant: "success",
       });
       
       if (onOptimizationComplete) {

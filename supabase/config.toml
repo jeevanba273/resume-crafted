@@ -20,5 +20,6 @@ enabled = true
 site_url = "http://localhost:5173"
 additional_redirect_urls = ["https://localhost:5173"]
 
+[functions]
 [functions.optimize-resume]
 verify_jwt = true
