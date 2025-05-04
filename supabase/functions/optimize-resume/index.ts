@@ -129,20 +129,31 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'gpt-4o',
           messages: [
             {
               role: 'system',
               content: `You are an ATS (Applicant Tracking System) expert that helps job seekers improve their existing resumes. 
               Analyze the resume against the job description and provide:
-              1. An ATS compatibility score (0-100)
-              2. A list of missing keywords from the job description that should be added to the resume
-              3. Specific suggestions for improvements (what to add, change, or remove)
-              4. A short summary of recommended changes
+              1. An overall ATS compatibility score (0-100)
+              2. A breakdown of metrics including:
+                 - keywordMatch (0-100): How well keywords from the job listing match the resume
+                 - formatCompliance (0-100): How well the resume follows standard formats expected by ATS
+                 - experienceMatch (0-100): How relevant the candidate's experience is to the job
+                 - skillsRelevance (0-100): How well the candidate's skills align with what's needed
+              3. A list of missing keywords from the job description that should be added to the resume
+              4. Specific suggestions for improvements (what to add, change, or remove)
+              5. A short summary of recommended changes
               
               Format your response as JSON with the following structure:
               {
                 "atsScore": number,
+                "metrics": {
+                  "keywordMatch": number,
+                  "formatCompliance": number,
+                  "experienceMatch": number,
+                  "skillsRelevance": number
+                },
                 "missingKeywords": ["keyword1", "keyword2", ...],
                 "improvementSuggestions": ["suggestion1", "suggestion2", ...],
                 "summaryOfChanges": "concise paragraph with recommendations"
@@ -235,6 +246,7 @@ serve(async (req) => {
         success: true,
         optimizationScore: analysisResult.atsScore,
         analysisUrl,
+        metrics: analysisResult.metrics,
         missingKeywords: analysisResult.missingKeywords,
         improvementSuggestions: analysisResult.improvementSuggestions,
         summaryOfChanges: analysisResult.summaryOfChanges

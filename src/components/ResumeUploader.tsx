@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { ResumeScoreCard } from "./ResumeScoreCard";
 
 interface ResumeUploaderProps {
   onOptimizationComplete?: (data: any) => void;
@@ -26,6 +27,12 @@ interface OptimizationResult {
   missingKeywords: string[];
   improvementSuggestions: string[];
   summaryOfChanges: string;
+  metrics?: {
+    keywordMatch: number;
+    formatCompliance: number;
+    experienceMatch: number;
+    skillsRelevance: number;
+  };
 }
 
 export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) {
@@ -182,6 +189,11 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
     return "text-red-600";
   };
 
+  // Generate random job ID for demo
+  const getRandomJobId = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto shadow-lg border-2 border-gray-100">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
@@ -210,13 +222,32 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
                 id="resume"
                 type="file"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                onChange={handleFileChange}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    // Check if file is PDF or Word document
+                    if (
+                      file.type === "application/pdf" ||
+                      file.type === "application/msword" ||
+                      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    ) {
+                      setResumeFile(file);
+                      setErrorMessage(null);
+                    } else {
+                      toast({
+                        title: "Invalid file type",
+                        description: "Please upload a PDF or Word document",
+                        variant: "destructive",
+                      });
+                    }
+                  }
+                }}
                 className="hidden"
               />
               
               <Button 
                 type="button"
-                onClick={triggerFileInput}
+                onClick={() => fileInputRef.current?.click()}
                 variant="outline" 
                 className="w-full flex items-center justify-center gap-2 h-20 border-2 border-dashed border-gray-300 hover:border-primary hover:bg-blue-50 transition-colors"
               >
@@ -307,6 +338,19 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Summary of Changes</h4>
                 <p className="text-sm text-gray-600">{optimizationResult.summaryOfChanges}</p>
               </div>
+
+              {/* New Resume Score Card */}
+              <ResumeScoreCard 
+                score={optimizationResult.optimizationScore}
+                metrics={optimizationResult.metrics || {
+                  keywordMatch: Math.min(optimizationResult.optimizationScore + 10, 100),
+                  formatCompliance: Math.min(optimizationResult.optimizationScore + 5, 100),
+                  experienceMatch: Math.max(optimizationResult.optimizationScore - 5, 0),
+                  skillsRelevance: optimizationResult.optimizationScore
+                }}
+                jobId={getRandomJobId()} // Generate random job ID for demo
+                improvementSuggestions={optimizationResult.improvementSuggestions}
+              />
             </div>
           </div>
         )}
