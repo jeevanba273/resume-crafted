@@ -108,39 +108,49 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
 
       console.log("Resume uploaded successfully, calling optimize-resume function");
       
-      // Call the optimize-resume function with the correct invocation method
-      const { data: optimizationData, error: optimizationError } = await supabase.functions
-        .invoke('optimize-resume', {
-          body: {
-            originalResumeUrl: filePath,
-            jobDescription,
-            userId: user.id,
-            fileType: resumeFile.type
-          },
+      // Call the optimize-resume function with improved error handling
+      try {
+        const { data: optimizationData, error: functionError } = await supabase.functions
+          .invoke('optimize-resume', {
+            body: {
+              originalResumeUrl: filePath,
+              jobDescription,
+              userId: user.id,
+              fileType: resumeFile.type
+            },
+          });
+
+        if (functionError) {
+          console.error("Function error:", functionError);
+          throw new Error(`Error calling optimize-resume function: ${functionError.message}`);
+        }
+
+        if (!optimizationData || !optimizationData.success) {
+          const errorMsg = optimizationData?.error || "Unknown error occurred during optimization";
+          console.error("Optimization failed:", errorMsg);
+          throw new Error(`Resume optimization failed: ${errorMsg}`);
+        }
+
+        console.log("Resume optimization completed successfully:", optimizationData);
+        setOptimizationResult(optimizationData);
+        
+        toast({
+          title: "Resume optimized successfully!",
+          description: `Optimization score: ${optimizationData.optimizationScore}%`,
+          variant: "success", 
         });
-
-      if (optimizationError) {
-        console.error("Function error:", optimizationError);
-        throw new Error(`Error optimizing resume: ${optimizationError.message}`);
-      }
-
-      if (!optimizationData || !optimizationData.success) {
-        const errorMsg = optimizationData?.error || "Unknown error occurred during optimization";
-        console.error("Optimization failed:", errorMsg);
-        throw new Error(`Resume optimization failed: ${errorMsg}`);
-      }
-
-      console.log("Resume optimization completed successfully:", optimizationData);
-      setOptimizationResult(optimizationData);
-      
-      toast({
-        title: "Resume optimized successfully!",
-        description: `Optimization score: ${optimizationData.optimizationScore}%`,
-        variant: "success", 
-      });
-      
-      if (onOptimizationComplete) {
-        onOptimizationComplete(optimizationData);
+        
+        if (onOptimizationComplete) {
+          onOptimizationComplete(optimizationData);
+        }
+      } catch (functionsError: any) {
+        console.error("Error calling edge function:", functionsError);
+        // Check if this is a CORS or network error
+        if (functionsError.message && functionsError.message.includes("Failed to send")) {
+          throw new Error(`Network error: Failed to connect to the optimization service. Please try again later.`);
+        } else {
+          throw functionsError;
+        }
       }
     } catch (error: any) {
       console.error("Error in resume upload process:", error);

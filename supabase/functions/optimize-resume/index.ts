@@ -2,9 +2,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
-// Using pdf-parse which works with Deno
-import { default as parsePdf } from "https://esm.sh/pdf-parse@1.1.1";
-// Use a simple text extraction approach for Word documents
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = 'https://apaiwmvjugoauwdnemvv.supabase.co';
@@ -16,9 +13,12 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  // Handle CORS preflight requests - important for browser requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204 // Proper status code for successful preflight
+    });
   }
 
   try {
@@ -71,43 +71,48 @@ serve(async (req) => {
     
     console.log("File downloaded successfully, extracting text");
     
-    // Extract text from the resume depending on file type
+    // Extract text from the resume (simplified approach)
     let resumeText = "";
-    if (fileType === 'application/pdf') {
-      try {
-        const pdfData = await fileData.arrayBuffer();
-        const pdfBytes = new Uint8Array(pdfData);
-        // Use the PDF parser
-        const parsed = await parsePdf(pdfBytes);
-        resumeText = parsed.text;
-      } catch (e) {
-        console.error("Error extracting text from PDF:", e);
-        throw new Error(`Failed to extract text from PDF: ${e.message}`);
-      }
-    } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-               fileType === 'application/msword') {
-      try {
-        // For Word documents, we'll use a simpler approach - extract text directly from parts of the file
-        // This is a simplified approach and may not work perfectly for all Word documents
-        const docData = await fileData.text();
-        // Simple extraction - this won't be perfect but should get some content
-        resumeText = docData.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
-                            .replace(/<[^>]*>/g, ' ')
-                            .replace(/\s+/g, ' ');
+    
+    try {
+      // Simplified extraction approach using text conversion
+      if (fileType === 'application/pdf' || 
+          fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+          fileType === 'application/msword') {
         
-        // If we couldn't extract meaningful text, notify the user
-        if (resumeText.trim().length < 100) {
-          resumeText = "Note: Limited text could be extracted from this Word document format. " +
-                       "For better results, please upload a PDF file. Here's what we could extract:\n\n" + 
-                       resumeText;
+        // Try to extract text from the file
+        let extractedText = "";
+        
+        try {
+          // Convert file to text as best as possible
+          extractedText = await fileData.text();
+        } catch (textError) {
+          console.error("Error extracting text directly:", textError);
+          // Fall back to binary to string conversion
+          const buffer = await fileData.arrayBuffer();
+          const bytes = new Uint8Array(buffer);
+          extractedText = new TextDecoder().decode(bytes);
         }
-      } catch (e) {
-        console.error("Error extracting text from Word document:", e);
-        throw new Error(`Failed to extract text from Word document: ${e.message}`);
+        
+        // Clean up the extracted text
+        resumeText = extractedText
+          .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')  // Remove control characters
+          .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, ' ')  // Keep only basic Latin and Latin-1 Supplement chars
+          .replace(/\s+/g, ' ');  // Normalize whitespace
+        
+        if (resumeText.trim().length < 100) {
+          console.log("Extracted text is very short, may be incomplete");
+          resumeText = "Note: Limited text could be extracted from this document format. " +
+                       "For better results, please upload a plain text version. " +
+                       "Here's what we could extract:\n\n" + resumeText;
+        }
+      } else {
+        console.error("Unsupported file type:", fileType);
+        throw new Error("Unsupported file type");
       }
-    } else {
-      console.error("Unsupported file type:", fileType);
-      throw new Error("Unsupported file type");
+    } catch (e) {
+      console.error("Error processing file:", e);
+      throw new Error(`Failed to process document: ${e.message}`);
     }
 
     if (!resumeText || resumeText.trim().length === 0) {
