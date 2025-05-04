@@ -69,18 +69,32 @@ export default function ResumeOptimizer() {
             </p>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm p-2 mb-8">
+          <div className="mb-8">
             <Tabs defaultValue="create" className="w-full">
-              <TabsList className="w-full mb-6 grid grid-cols-2">
-                <TabsTrigger value="create" className="py-3 text-base flex items-center justify-center h-full">Create New</TabsTrigger>
-                <TabsTrigger value="history" className="py-3 text-base flex items-center justify-center h-full">Resume History</TabsTrigger>
-              </TabsList>
-              <TabsContent value="create" className="px-2 py-4">
-                <ResumeUploader />
-              </TabsContent>
-              <TabsContent value="history" className="px-2 py-4">
-                <ResumeHistory />
-              </TabsContent>
+              <div className="bg-gray-100 rounded-t-xl p-1">
+                <TabsList className="w-full grid grid-cols-2 bg-transparent">
+                  <TabsTrigger 
+                    value="create" 
+                    className="py-3 text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-none rounded-md flex items-center justify-center"
+                  >
+                    Create New
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="history" 
+                    className="py-3 text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-none rounded-md flex items-center justify-center"
+                  >
+                    Resume History
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <div className="bg-white rounded-b-xl shadow-sm p-6">
+                <TabsContent value="create" className="mt-0 pt-2">
+                  <ResumeUploader />
+                </TabsContent>
+                <TabsContent value="history" className="mt-0 pt-2">
+                  <ResumeHistory />
+                </TabsContent>
+              </div>
             </Tabs>
           </div>
         </div>
