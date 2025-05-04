@@ -36,6 +36,7 @@ const Navbar = () => {
 
   const navItems = [
     { name: "Home", href: "/" },
+    { name: "Dashboard", href: "/dashboard", authRequired: true },
     { name: "Pricing", href: "/pricing" },
     { name: "How it Works", href: "/how-it-works" },
   ];
@@ -55,31 +56,25 @@ const Navbar = () => {
           </Link>
         </div>
         <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={`text-sm font-medium transition-colors ${
-                location.pathname === item.href
-                  ? "text-primary"
-                  : "hover:text-primary text-muted-foreground"
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-          {user && (
-            <Link
-              to="/dashboard"
-              className={`text-sm font-medium transition-colors ${
-                location.pathname === "/dashboard"
-                  ? "text-primary"
-                  : "hover:text-primary text-muted-foreground"
-              }`}
-            >
-              Dashboard
-            </Link>
-          )}
+          {navItems.map((item) => {
+            // Only show Dashboard link if user is logged in and the item requires auth
+            if (item.authRequired && !user) {
+              return null;
+            }
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={`text-sm font-medium transition-colors ${
+                  location.pathname === item.href
+                    ? "text-primary"
+                    : "hover:text-primary text-muted-foreground"
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
         <div className="hidden md:flex items-center gap-4">
           {user ? (
@@ -135,23 +130,21 @@ const Navbar = () => {
           </SheetTrigger>
           <SheetContent side="right">
             <div className="flex flex-col space-y-6 mt-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className="text-base font-medium transition-colors hover:text-primary"
-                >
-                  {item.name}
-                </Link>
-              ))}
-              {user && (
-                <Link
-                  to="/dashboard"
-                  className="text-base font-medium transition-colors hover:text-primary"
-                >
-                  Dashboard
-                </Link>
-              )}
+              {navItems.map((item) => {
+                // Only show Dashboard link if user is logged in and the item requires auth
+                if (item.authRequired && !user) {
+                  return null;
+                }
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className="text-base font-medium transition-colors hover:text-primary"
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
               {user ? (
                 <>
                   <Link to="/account" className="text-base font-medium transition-colors hover:text-primary">
