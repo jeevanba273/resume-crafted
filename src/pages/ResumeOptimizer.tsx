@@ -71,6 +71,7 @@ export default function ResumeOptimizer() {
           
           <div className="mb-8">
             <Tabs defaultValue="create" className="w-full">
+              {/* Fixed tabs menu that stays consistent */}
               <div className="bg-gray-100 rounded-t-xl p-1">
                 <TabsList className="w-full grid grid-cols-2 bg-transparent">
                   <TabsTrigger 
@@ -87,11 +88,13 @@ export default function ResumeOptimizer() {
                   </TabsTrigger>
                 </TabsList>
               </div>
-              <div className="bg-white rounded-b-xl shadow-sm p-6">
-                <TabsContent value="create" className="mt-0 pt-2">
+              
+              {/* Content area that changes based on selected tab */}
+              <div className="bg-white rounded-b-xl shadow-sm">
+                <TabsContent value="create" className="mt-0 p-6">
                   <ResumeUploader />
                 </TabsContent>
-                <TabsContent value="history" className="mt-0 pt-2">
+                <TabsContent value="history" className="mt-0 p-6">
                   <ResumeHistory />
                 </TabsContent>
               </div>
