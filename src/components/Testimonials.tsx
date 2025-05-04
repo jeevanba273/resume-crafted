@@ -4,13 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 const Testimonials = () => {
   const testimonials = [
     {
-      quote: "My resume match score went from 45% to 92%. I got calls from 3 companies within a week after using InstaResume Pro!",
+      quote: "My resume match score went from 45% to 92%. I got calls from 3 companies within a week after using Resume Crafted!",
       name: "Priya Sharma",
       role: "Software Engineer, Bengaluru",
       company: "Hired at MakeMyTrip"
     },
     {
-      quote: "I was applying to jobs for months with no calls. InstaResume Pro helped me optimize my resume for ATS and I landed my dream job in just 2 weeks.",
+      quote: "I was applying to jobs for months with no calls. Resume Crafted helped me optimize my resume for ATS and I landed my dream job in just 2 weeks.",
       name: "Rahul Verma",
       role: "Digital Marketing Specialist, Mumbai",
       company: "Hired at PhonePe"
@@ -29,7 +29,7 @@ const Testimonials = () => {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl font-bold mb-4">Success Stories</h2>
           <p className="text-lg text-muted-foreground">
-            Join thousands of professionals who landed their dream jobs with InstaResume Pro
+            Join thousands of professionals who landed their dream jobs with Resume Crafted
           </p>
         </div>
         

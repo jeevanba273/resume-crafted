@@ -39,7 +39,7 @@ const Navbar = () => {
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold bg-clip-text text-transparent animated-gradient">
-              InstaResume Pro
+              Resume Crafted
             </span>
           </Link>
         </div>

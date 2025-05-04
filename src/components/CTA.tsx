@@ -19,7 +19,7 @@ const CTA = () => {
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">Ready to Land More Interviews?</h2>
           <p className="mb-8 text-lg text-muted-foreground">
-            Join thousands of Indian professionals who have improved their job search success with InstaResume Pro
+            Join thousands of Indian professionals who have improved their job search success with Resume Crafted
           </p>
           
           <div className="mb-8 grid gap-4 md:grid-cols-2">

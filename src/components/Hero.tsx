@@ -1,3 +1,4 @@
+
 import { ArrowRight, FileCheck, Clock, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -12,7 +13,7 @@ const Hero = () => {
               Get Your Resume Past <span className="text-primary">ATS Filters</span> & Land More Interviews
             </h1>
             <p className="text-xl text-muted-foreground">
-              75% of resumes never reach human eyes. Beat the ATS with InstaResume Pro - tailored for the Indian job market.
+              75% of resumes never reach human eyes. Beat the ATS with Resume Crafted - tailored for the Indian job market.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <Link to="/register">

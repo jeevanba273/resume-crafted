@@ -14,12 +14,12 @@ const FAQ = () => {
         "ATS (Applicant Tracking System) is software used by 98% of Fortune 500 companies and a majority of Indian recruiters to filter resumes before a human sees them. If your resume isn't optimized for ATS, it may be automatically rejected even if you're qualified for the role."
     },
     {
-      question: "How does InstaResume Pro optimize my resume for ATS?",
+      question: "How does Resume Crafted optimize my resume for ATS?",
       answer:
-        "InstaResume Pro analyzes your resume against the job description, identifies missing keywords, and restructures your content to be ATS-friendly. We ensure proper formatting, appropriate keyword density, and clear section headers that ATS systems can easily parse."
+        "Resume Crafted analyzes your resume against the job description, identifies missing keywords, and restructures your content to be ATS-friendly. We ensure proper formatting, appropriate keyword density, and clear section headers that ATS systems can easily parse."
     },
     {
-      question: "What file formats does InstaResume Pro support?",
+      question: "What file formats does Resume Crafted support?",
       answer:
         "You can upload your existing resume in DOCX or PDF format. Our system will extract the content and use it to create an optimized version. You can also start from scratch using our templates."
     },
@@ -31,7 +31,7 @@ const FAQ = () => {
     {
       question: "Is this a subscription or a one-time payment?",
       answer:
-        "InstaResume Pro is currently available for a one-time payment of ₹299 (early bird pricing), giving you lifetime access to the platform. This includes unlimited resume optimizations and cover letter generations."
+        "Resume Crafted is currently available for a one-time payment of ₹299 (early bird pricing), giving you lifetime access to the platform. This includes unlimited resume optimizations and cover letter generations."
     },
     {
       question: "How long does it take to generate an optimized resume?",
@@ -46,7 +46,7 @@ const FAQ = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
           <p className="text-lg text-muted-foreground">
-            Everything you need to know about InstaResume Pro
+            Everything you need to know about Resume Crafted
           </p>
         </div>
         

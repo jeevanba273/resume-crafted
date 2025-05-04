@@ -9,7 +9,7 @@ const Footer = () => {
           <div>
             <Link to="/" className="inline-block mb-4">
               <span className="text-xl font-bold bg-clip-text text-transparent animated-gradient">
-                InstaResume Pro
+                Resume Crafted
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ const Footer = () => {
         </div>
         <div className="mt-10 border-t pt-6 flex flex-col md:flex-row items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} InstaResume Pro. All rights reserved.
+            &copy; {new Date().getFullYear()} Resume Crafted. All rights reserved.
           </p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">

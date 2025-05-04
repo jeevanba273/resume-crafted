@@ -40,7 +40,7 @@ const HowItWorks = () => {
     <section className="py-20">
       <div className="container px-4 md:px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold mb-4">How InstaResume Pro Works</h2>
+          <h2 className="text-3xl font-bold mb-4">How Resume Crafted Works</h2>
           <p className="text-lg text-muted-foreground">
             Get your ATS-optimized resume and cover letter in just 6 easy steps
           </p>
