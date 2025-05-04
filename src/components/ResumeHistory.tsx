@@ -15,16 +15,17 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ResumeScoreCard } from "@/components/ResumeScoreCard";
 
 export function ResumeHistory() {
   const [resumeHistory, setResumeHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedResume, setSelectedResume] = useState<any>(null);
   const [resumeContent, setResumeContent] = useState<string>("");
+  const [analysisData, setAnalysisData] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const { toast } = useToast();
 
@@ -62,6 +63,24 @@ export function ResumeHistory() {
     }
   };
 
+  const fetchAnalysisData = async (path: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("resumes")
+        .download(path);
+
+      if (error) {
+        throw error;
+      }
+
+      const text = await data.text();
+      return JSON.parse(text);
+    } catch (error) {
+      console.error("Error fetching analysis data:", error);
+      throw error;
+    }
+  };
+
   const handleViewResume = async (resume: any) => {
     try {
       setSelectedResume(resume);
@@ -70,7 +89,7 @@ export function ResumeHistory() {
       // Download the resume content
       const { data, error } = await supabase.storage
         .from("resumes")
-        .download(resume.optimized_resume_path);
+        .download(resume.original_resume_path);
 
       if (error) {
         throw error;
@@ -79,6 +98,11 @@ export function ResumeHistory() {
       // Convert the blob to text
       const text = await data.text();
       setResumeContent(text);
+      
+      // Fetch and set the analysis data
+      const analysis = await fetchAnalysisData(resume.optimized_resume_path);
+      setAnalysisData(analysis);
+      
       setIsViewModalOpen(true);
     } catch (error) {
       console.error("Error viewing resume:", error);
@@ -99,7 +123,7 @@ export function ResumeHistory() {
       // Download the resume content
       const { data, error } = await supabase.storage
         .from("resumes")
-        .download(resume.optimized_resume_path);
+        .download(resume.original_resume_path);
 
       if (error) {
         throw error;
@@ -110,7 +134,7 @@ export function ResumeHistory() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `optimized-resume-${new Date().toISOString().slice(0, 10)}.txt`;
+      link.download = `resume-${new Date().toISOString().slice(0, 10)}.txt`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -118,7 +142,7 @@ export function ResumeHistory() {
 
       toast({
         title: "Download started",
-        description: "Your optimized resume is being downloaded",
+        description: "Your resume is being downloaded",
       });
     } catch (error) {
       console.error("Error downloading resume:", error);
@@ -200,17 +224,58 @@ export function ResumeHistory() {
       </div>
       
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Optimized Resume</DialogTitle>
-            <DialogDescription>
-              Created on {selectedResume && new Date(selectedResume.created_at).toLocaleString()}
-            </DialogDescription>
+            <DialogTitle className="text-xl">
+              Resume Analysis - {selectedResume && new Date(selectedResume.created_at).toLocaleDateString()}
+            </DialogTitle>
           </DialogHeader>
-          <div className="border rounded-md p-4 whitespace-pre-wrap">
-            {resumeContent}
+
+          {/* Score Card */}
+          {analysisData && (
+            <ResumeScoreCard 
+              score={analysisData.atsScore}
+              metrics={{
+                keywordMatch: analysisData.metrics.keywordMatch,
+                formatCompliance: analysisData.metrics.formatCompliance,
+                experienceMatch: analysisData.metrics.experienceMatch,
+                skillsRelevance: analysisData.metrics.skillsRelevance,
+              }}
+              improvementSuggestions={analysisData.improvementSuggestions}
+            />
+          )}
+
+          {/* Original Resume Content */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-lg mb-2">Your Original Resume</h3>
+            <div className="bg-gray-50 border rounded-md p-4 whitespace-pre-wrap font-mono text-sm overflow-auto max-h-96">
+              {resumeContent}
+            </div>
           </div>
-          <div className="flex justify-end space-x-2 mt-4">
+          
+          {/* Missing Keywords Section */}
+          {analysisData && analysisData.missingKeywords && (
+            <div className="mt-6">
+              <h3 className="font-semibold text-lg mb-2">Missing Keywords</h3>
+              <div className="flex flex-wrap gap-2">
+                {analysisData.missingKeywords.map((keyword: string, idx: number) => (
+                  <span key={idx} className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs">
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Summary Section */}
+          {analysisData && analysisData.summaryOfChanges && (
+            <div className="mt-6">
+              <h3 className="font-semibold text-lg mb-2">Summary of Recommendations</h3>
+              <p className="text-gray-700 text-sm">{analysisData.summaryOfChanges}</p>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-2 mt-6">
             <Button
               variant="outline"
               onClick={() => setIsViewModalOpen(false)}
@@ -220,7 +285,7 @@ export function ResumeHistory() {
             {selectedResume && (
               <Button onClick={() => handleDownloadResume(selectedResume)}>
                 <Download className="h-4 w-4 mr-2" />
-                Download
+                Download Resume
               </Button>
             )}
           </div>
