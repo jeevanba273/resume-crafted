@@ -1,5 +1,5 @@
 
-import React from "react"; // Make sure React is explicitly imported
+import React, { useState, useEffect } from "react"; 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,28 +17,62 @@ import ResumeOptimizer from "./pages/ResumeOptimizer";
 // Create a new QueryClient instance outside of the component
 const queryClient = new QueryClient();
 
-const App: React.FC = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/register" element={<Auth />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/how-it-works" element={<HowItWorksPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/resume" element={<ResumeOptimizer />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
-);
+// Dark mode context
+export const ThemeContext = React.createContext({
+  isDarkMode: false,
+  toggleDarkMode: () => {},
+});
+
+const App: React.FC = () => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check if user has a preference stored in localStorage
+    const savedTheme = localStorage.getItem('theme');
+    // Check if user prefers dark mode at OS level
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    return savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+  });
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(prev => !prev);
+  };
+
+  // Update the class on the html element when dark mode changes
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  return (
+    <React.StrictMode>
+      <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode }}>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Auth />} />
+                <Route path="/register" element={<Auth />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/how-it-works" element={<HowItWorksPage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/resume" element={<ResumeOptimizer />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeContext.Provider>
+    </React.StrictMode>
+  );
+};
 
 export default App;

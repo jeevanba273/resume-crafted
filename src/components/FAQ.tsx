@@ -41,26 +41,60 @@ const FAQ = () => {
   ];
 
   return (
-    <section className="py-20">
-      <div className="container px-4 md:px-6 max-w-4xl">
+    <section className="py-20 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-primary/5 dark:from-primary/10 to-transparent"></div>
+      <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-primary/5 dark:from-primary/10 to-transparent"></div>
+      <div className="absolute top-40 -left-24 w-64 h-64 bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-40 -right-24 w-64 h-64 bg-purple-100/50 dark:bg-purple-900/20 rounded-full blur-3xl"></div>
+      
+      <div className="container px-4 md:px-6 max-w-4xl relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-          <p className="text-lg text-muted-foreground">
+          <span className="inline-block text-primary text-sm font-bold tracking-wider uppercase mb-4 bg-primary/10 dark:bg-primary/20 px-3 py-1 rounded-full animate-fade-in">Questions</span>
+          <h2 className="text-3xl font-bold mb-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            Frequently Asked <span className="text-primary">Questions</span>
+          </h2>
+          <p className="text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.3s' }}>
             Everything you need to know about Resume Crafted
           </p>
         </div>
         
         <Accordion type="single" collapsible className="w-full">
           {faqs.map((faq, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-              <AccordionContent>{faq.answer}</AccordionContent>
+            <AccordionItem 
+              key={index} 
+              value={`item-${index}`}
+              className="animate-fade-in border-b dark:border-gray-800 group"
+              style={{ animationDelay: `${index * 100 + 400}ms` }}
+            >
+              <AccordionTrigger 
+                className="text-left py-5 hover:no-underline group-hover:text-primary transition-colors"
+              >
+                <span className="font-medium">{faq.question}</span>
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground animate-fade-in">
+                {faq.answer}
+              </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
+        
+        <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: '1s' }}>
+          <p className="inline-block text-primary font-medium px-4 py-2 bg-primary/10 dark:bg-primary/20 rounded-full">
+            Still have questions? <Link to="/support" className="underline hover:no-underline">Contact our support team</Link>
+          </p>
+        </div>
       </div>
     </section>
   );
 };
 
 export default FAQ;
+
+function Link({ to, className, children }) {
+  return (
+    <a href={to} className={className}>
+      {children}
+    </a>
+  );
+}
