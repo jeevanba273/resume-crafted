@@ -180,7 +180,7 @@ export function ResumeScoreCard({
           </div>
         </div>
 
-        {/* Suggested Improvements */}
+        {/* Suggested Improvements - Now showing ALL suggestions without the "more suggestions" text */}
         <div className={`p-4 rounded-xl border ${isDarkMode 
           ? "bg-amber-900/20 border-amber-800/50" 
           : "bg-amber-50 border-amber-200"}`}
@@ -190,17 +190,12 @@ export function ResumeScoreCard({
             Top Improvement Suggestions
           </h4>
           <ul className="mt-2 space-y-2 pl-2">
-            {improvementSuggestions.slice(0, 3).map((suggestion, idx) => (
+            {improvementSuggestions.map((suggestion, idx) => (
               <li key={idx} className={`text-xs flex items-start gap-2 ${isDarkMode ? "text-amber-200" : "text-amber-700"}`}>
                 <span className="mr-1 mt-1">•</span>
                 <span>{suggestion}</span>
               </li>
             ))}
-            {improvementSuggestions.length > 3 && (
-              <li className={`text-xs italic mt-1 ${isDarkMode ? "text-amber-300/70" : "text-amber-600"}`}>
-                + {improvementSuggestions.length - 3} more suggestions...
-              </li>
-            )}
           </ul>
         </div>
       </CardContent>
