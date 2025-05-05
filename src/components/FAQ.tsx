@@ -1,3 +1,4 @@
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 const FAQ = () => {
   const faqs = [{
@@ -14,7 +15,7 @@ const FAQ = () => {
     answer: "Our ATS score algorithm is built on research of how major ATS systems like Taleo, Workday, and other systems used in India evaluate resumes. While no tool can predict with 100% accuracy how every ATS will score your resume, our system focuses on the key factors that most ATS systems use."
   }, {
     question: "Is this a subscription or a one-time payment?",
-    answer: "Resume Crafted is currently available for a one-time payment of ₹299 (early bird pricing), giving you lifetime access to the platform. This includes unlimited resume optimizations and cover letter generations."
+    answer: "Resume Crafted is completely free to use. You get lifetime access to the platform with all features at no cost. This includes unlimited resume optimizations and cover letter generations."
   }, {
     question: "How long does it take to generate an optimized resume?",
     answer: "The entire process takes less than 60 seconds from the moment you upload your resume and paste the job description. You'll instantly see your ATS score and can download your optimized resume and cover letter."
