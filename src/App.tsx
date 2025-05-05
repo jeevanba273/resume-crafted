@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react"; 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -19,7 +18,7 @@ const queryClient = new QueryClient();
 
 // Dark mode context
 export const ThemeContext = React.createContext({
-  isDarkMode: false,
+  isDarkMode: true,
   toggleDarkMode: () => {},
 });
 
@@ -27,10 +26,10 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check if user has a preference stored in localStorage
     const savedTheme = localStorage.getItem('theme');
-    // Check if user prefers dark mode at OS level
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    return savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+    // If user has explicitly set light theme, respect that choice
+    // Otherwise, default to dark theme
+    return savedTheme === 'light' ? false : true;
   });
 
   const toggleDarkMode = () => {
