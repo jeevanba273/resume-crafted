@@ -1,4 +1,3 @@
-
 import { ArrowRight, FileCheck, Clock, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -15,9 +14,8 @@ const Hero = () => {
           <div className="flex flex-col gap-4">
             <span className="text-sm font-medium text-primary bg-primary/10 dark:bg-primary/20 px-3 py-1 rounded-full w-fit animate-fade-in">Launch Your Career</span>
             <h1 className="text-3xl md:text-5xl font-bold leading-tight animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              Get Your Resume Past <span className="text-primary relative">
+              Get Your Resume Past <span className="text-primary">
                 ATS Filters
-                <span className="absolute bottom-1 left-0 w-full h-2 bg-primary/20 dark:bg-primary/30 -z-10 rounded"></span>
               </span> & Land More Interviews
             </h1>
             <p className="text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.4s' }}>
