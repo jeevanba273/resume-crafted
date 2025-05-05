@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Twitter, Linkedin, Instagram } from "lucide-react";
+import { Github, Linkedin } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="animate-fade-in">
             <Link to="/" className="inline-block mb-4">
-              <span className="text-xl font-bold bg-clip-text text-transparent animated-gradient">
+              <span className="text-2xl font-bold bg-clip-text text-transparent animated-gradient">
                 Resume Crafted
               </span>
             </Link>
@@ -80,17 +80,23 @@ const Footer = () => {
             &copy; {currentYear} Resume Crafted. All rights reserved.
           </p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors group p-1 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-full">
-              <span className="sr-only">Twitter</span>
-              <Twitter className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <a 
+              href="https://www.linkedin.com/in/jeevanba273/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-muted-foreground hover:text-primary transition-colors group p-2 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-full"
+              aria-label="LinkedIn"
+            >
+              <Linkedin className="h-5 w-5 group-hover:scale-110 transition-transform" />
             </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors group p-1 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-full">
-              <span className="sr-only">LinkedIn</span>
-              <Linkedin className="h-4 w-4 group-hover:scale-110 transition-transform" />
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors group p-1 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-full">
-              <span className="sr-only">Instagram</span>
-              <Instagram className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <a 
+              href="https://github.com/jeevanba273" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-muted-foreground hover:text-primary transition-colors group p-2 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-full"
+              aria-label="GitHub"
+            >
+              <Github className="h-5 w-5 group-hover:scale-110 transition-transform" />
             </a>
           </div>
         </div>

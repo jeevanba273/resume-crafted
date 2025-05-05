@@ -1,5 +1,5 @@
-
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 const FAQ = () => {
   const faqs = [{
     question: "What is ATS and why does it matter?",
