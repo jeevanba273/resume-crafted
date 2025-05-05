@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
@@ -19,10 +20,13 @@ serve(async (req) => {
   try {
     console.log("Edge function called: optimize-resume");
     
+    // Check for required environment variables and log their status (without exposing values)
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error("Missing OPENAI_API_KEY environment variable");
       throw new Error("Server configuration error: Missing OpenAI API key");
+    } else {
+      console.log("OPENAI_API_KEY is configured");
     }
     
     const supabaseUrl = 'https://apaiwmvjugoauwdnemvv.supabase.co';
@@ -30,13 +34,20 @@ serve(async (req) => {
     if (!supabaseServiceKey) {
       console.error("Missing SERVICE_ROLE_KEY environment variable");
       throw new Error("Server configuration error: Missing Supabase service key");
+    } else {
+      console.log("SERVICE_ROLE_KEY is configured");
     }
 
     // Parse the request body
     let requestData;
     try {
       requestData = await req.json();
-      console.log("Request received:", JSON.stringify(requestData));
+      console.log("Request received:", JSON.stringify({
+        userId: requestData.userId,
+        fileType: requestData.fileType,
+        originalResumeUrl: requestData.originalResumeUrl?.substring(0, 20) + "...", // Log partial URL for privacy
+        jobDescriptionLength: requestData.jobDescription?.length || 0
+      }));
     } catch (e) {
       console.error("Error parsing request JSON:", e);
       throw new Error("Invalid JSON in request body");
@@ -45,18 +56,23 @@ serve(async (req) => {
     const { originalResumeUrl, jobDescription, userId, fileType } = requestData;
     
     if (!originalResumeUrl || !jobDescription || !userId || !fileType) {
-      console.error("Missing required fields:", { originalResumeUrl, jobDescription, userId, fileType });
+      console.error("Missing required fields:", { 
+        hasOriginalResumeUrl: !!originalResumeUrl, 
+        hasJobDescription: !!jobDescription, 
+        hasUserId: !!userId, 
+        hasFileType: !!fileType 
+      });
       throw new Error("Missing required fields: originalResumeUrl, jobDescription, userId, or fileType");
     }
     
     console.log("Processing resume for user:", userId);
-    console.log("Original resume URL:", originalResumeUrl);
+    console.log("File type:", fileType);
     
     // Create a Supabase client with service role key (bypasses RLS)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Download the original resume file
-    console.log("Attempting to download file from storage");
+    console.log("Attempting to download file from storage:", originalResumeUrl);
     const { data: fileData, error: downloadError } = await supabase
       .storage
       .from('resumes')
@@ -82,12 +98,14 @@ serve(async (req) => {
         try {
           // Convert file to text as best as possible
           resumeText = await fileData.text();
+          console.log("Text extracted successfully, length:", resumeText.length);
         } catch (textError) {
           console.error("Error extracting text directly:", textError);
           // Fall back to binary to string conversion
           const buffer = await fileData.arrayBuffer();
           const bytes = new Uint8Array(buffer);
           resumeText = new TextDecoder().decode(bytes);
+          console.log("Text extracted via fallback method, length:", resumeText.length);
         }
         
         // Clean up the extracted text
@@ -97,12 +115,12 @@ serve(async (req) => {
           .replace(/\s+/g, ' ');  // Normalize whitespace
         
         if (resumeText.trim().length < 100) {
-          console.log("Extracted text is very short, may be incomplete");
+          console.log("Extracted text is very short, may be incomplete:", resumeText);
           throw new Error("Limited text could be extracted from this document format. For better results, please upload a plain text version.");
         }
       } else {
         console.error("Unsupported file type:", fileType);
-        throw new Error("Unsupported file type");
+        throw new Error(`Unsupported file type: ${fileType}. Please upload a PDF or Word document.`);
       }
     } catch (e) {
       console.error("Error processing file:", e);
@@ -115,12 +133,13 @@ serve(async (req) => {
     }
 
     console.log("Extracted resume text length:", resumeText.length);
+    console.log("First 100 chars of resume:", resumeText.substring(0, 100));
     console.log("Calling OpenAI API to analyze the resume");
     
     // Call OpenAI API to analyze the resume against the job description
     let openAiResponse;
     try {
-      console.log("Preparing request to OpenAI API");
+      console.log("Preparing request to OpenAI API with model: gpt-4o");
       
       const openAiBody = JSON.stringify({
         model: 'gpt-4o',
@@ -164,6 +183,9 @@ serve(async (req) => {
       });
       
       console.log("Sending request to OpenAI API");
+      console.log("OpenAI API key length:", openAIApiKey.length);
+      console.log("OpenAI API key first 3 chars:", openAIApiKey.substring(0, 3));
+      
       openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -206,17 +228,22 @@ serve(async (req) => {
     }
     
     if (!openAiData.choices || !openAiData.choices[0]) {
-      console.error("Unexpected OpenAI response format:", openAiData);
+      console.error("Unexpected OpenAI response format:", JSON.stringify(openAiData).substring(0, 200) + "...");
       throw new Error("Failed to get analysis from OpenAI: missing choices in response");
     }
     
     let analysisResult;
     try {
       analysisResult = JSON.parse(openAiData.choices[0].message.content);
-      console.log("Analysis received from OpenAI:", analysisResult);
+      console.log("Analysis received from OpenAI:", JSON.stringify({
+        atsScore: analysisResult.atsScore,
+        metrics: analysisResult.metrics,
+        missingKeywordsCount: analysisResult.missingKeywords?.length,
+        suggestionsCount: analysisResult.improvementSuggestions?.length
+      }));
     } catch (e) {
       console.error("Error parsing analysis from OpenAI response:", e);
-      console.error("Raw content:", openAiData.choices[0].message.content);
+      console.error("Raw content:", openAiData.choices[0].message.content.substring(0, 200) + "...");
       throw new Error("Invalid analysis format from OpenAI");
     }
     
@@ -281,13 +308,30 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in optimize-resume function:', error);
+    
+    // Provide more detailed error information in the response
+    let errorMessage = error.message || "Unknown error";
+    let statusCode = 500;
+    
+    // Categorize common errors for better user feedback
+    if (errorMessage.includes("Missing OpenAI API key")) {
+      errorMessage = "API key configuration error. Please contact the administrator.";
+      statusCode = 500;
+    } else if (errorMessage.includes("OpenAI API error")) {
+      errorMessage = `AI service error: ${errorMessage}`;
+      statusCode = 502;
+    } else if (errorMessage.includes("download")) {
+      errorMessage = "Could not access the uploaded resume file. Please try uploading again.";
+      statusCode = 404;
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: errorMessage
       }),
       {
-        status: 500,
+        status: statusCode,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
