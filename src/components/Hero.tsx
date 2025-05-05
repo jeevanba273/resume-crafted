@@ -1,3 +1,4 @@
+
 import { ArrowRight, FileCheck, Clock, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -22,7 +23,7 @@ const Hero = () => {
               75% of resumes never reach human eyes. Beat the ATS with Resume Crafted - tailored for the Indian job market.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-              <Link to="/register">
+              <Link to="/resume">
                 <Button size="lg" className="w-full sm:w-auto gap-2 relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
                   <span className="relative z-10">Get Started</span>
                   <ArrowRight className="h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
