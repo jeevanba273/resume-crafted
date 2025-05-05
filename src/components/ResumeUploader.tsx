@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, FileText, Check, AlertTriangle } from "lucide-react";
+import { Loader2, Upload, FileText, Check, AlertTriangle, Upload as UploadIcon, FileUp } from "lucide-react";
 import { 
   Card,
   CardContent,
@@ -16,6 +16,7 @@ import {
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { ResumeScoreCard } from "./ResumeScoreCard";
+import { ThemeContext } from "@/App";
 
 interface ResumeUploaderProps {
   onOptimizationComplete?: (data: any) => void;
@@ -42,6 +43,7 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isDarkMode } = useContext(ThemeContext);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -183,9 +185,9 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-amber-600"; 
-    return "text-red-600";
+    if (score >= 80) return "text-green-600 dark:text-green-400";
+    if (score >= 60) return "text-amber-600 dark:text-amber-400"; 
+    return "text-red-600 dark:text-red-400";
   };
 
   // Generate random job ID for demo
@@ -194,24 +196,26 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto shadow-lg border-2 border-gray-100">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-        <CardTitle className="text-2xl font-bold text-gray-800">Analyze Your Resume</CardTitle>
-        <CardDescription className="text-gray-600">
+    <Card className={`w-full max-w-3xl mx-auto ${isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'border-2 border-gray-100 bg-white/50'} backdrop-blur-sm shadow-xl overflow-hidden`}>
+      <CardHeader className={`${isDarkMode ? 'bg-gradient-to-r from-blue-900/40 to-indigo-900/40' : 'bg-gradient-to-r from-blue-50 to-indigo-50'} rounded-t-lg`}>
+        <CardTitle className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+          Analyze Your Resume
+        </CardTitle>
+        <CardDescription className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           Upload your resume and job description to get ATS optimization feedback
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
         {errorMessage && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTitle>Error analyzing resume</AlertTitle>
+          <Alert variant="destructive" className="mb-4 border border-red-300 dark:border-red-800">
+            <AlertTitle className="font-semibold">Error analyzing resume</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         )}
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <label htmlFor="resume" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="resume" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               Upload Resume (PDF or Word)
             </label>
             
@@ -221,52 +225,60 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
                 id="resume"
                 type="file"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    const file = e.target.files[0];
-                    // Check if file is PDF or Word document
-                    if (
-                      file.type === "application/pdf" ||
-                      file.type === "application/msword" ||
-                      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    ) {
-                      setResumeFile(file);
-                      setErrorMessage(null);
-                    } else {
-                      toast({
-                        title: "Invalid file type",
-                        description: "Please upload a PDF or Word document",
-                        variant: "destructive",
-                      });
-                    }
-                  }
-                }}
+                onChange={handleFileChange}
                 className="hidden"
               />
               
               <Button 
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                variant="outline" 
-                className="w-full flex items-center justify-center gap-2 h-20 border-2 border-dashed border-gray-300 hover:border-primary hover:bg-blue-50 transition-colors"
+                onClick={triggerFileInput}
+                variant={isDarkMode ? "outline" : "outline"}
+                className={`w-full flex items-center justify-center gap-2 h-24 border-2 border-dashed 
+                ${isDarkMode ? 
+                  'border-gray-600 hover:border-blue-500 hover:bg-blue-900/20 text-gray-300' : 
+                  'border-gray-300 hover:border-primary hover:bg-blue-50 text-gray-600'} 
+                transition-all duration-300 rounded-xl group`}
               >
-                <Upload className="h-5 w-5" />
-                <span>Click to browse files</span>
+                <div className="flex flex-col items-center gap-2">
+                  <div className={`p-2 rounded-full ${isDarkMode ? 'bg-blue-900/30 group-hover:bg-blue-800/50' : 'bg-blue-100 group-hover:bg-blue-200'} transition-colors`}>
+                    <FileUp className={`h-6 w-6 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'} transition-transform group-hover:scale-110 group-hover:rotate-3`} />
+                  </div>
+                  <span className="font-medium">Click to browse files</span>
+                </div>
               </Button>
 
               {resumeFile && (
-                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-md border border-blue-100">
-                  <FileText className="h-5 w-5 text-blue-500" />
-                  <span className="text-sm text-blue-700 font-medium truncate">
-                    {resumeFile.name}
-                  </span>
+                <div className={`flex items-center gap-3 p-4 rounded-md border ${isDarkMode ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-100'} animate-fade-in`}>
+                  <div className={`p-2 rounded-full ${isDarkMode ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                    <FileText className={`h-5 w-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium truncate ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                      {resumeFile.name}
+                    </p>
+                    <p className={`text-xs ${isDarkMode ? 'text-blue-400/70' : 'text-blue-400'}`}>
+                      {(resumeFile.size / 1024).toFixed(2)} KB
+                    </p>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm"
+                    className={`rounded-full p-1 h-8 w-8 ${isDarkMode ? 'hover:bg-red-900/30 text-red-400' : 'hover:bg-red-100 text-red-500'}`}
+                    onClick={() => setResumeFile(null)}
+                  >
+                    <span className="sr-only">Remove</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
                 </div>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="jobDescription" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="jobDescription" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               Job Description
             </label>
             <Textarea
@@ -274,14 +286,19 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the job description here..."
-              className="min-h-[180px] border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-100"
+              className={`min-h-[180px] ${isDarkMode ? 
+                'bg-gray-800 border-gray-600 text-white placeholder-gray-500 focus:border-blue-500 focus:ring focus:ring-blue-500/20' : 
+                'bg-white/80 border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-100'}`}
             />
           </div>
 
           <Button
             type="submit"
             disabled={isLoading || !resumeFile || !jobDescription.trim()}
-            className="w-full font-medium py-2 transition-all bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+            className={`w-full font-medium py-6 transition-all ${!isLoading ? 'animate-pulse-soft' : ''} 
+            ${isDarkMode ? 
+              'bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 shadow-lg shadow-indigo-900/30' : 
+              'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-indigo-600/20'}`}
           >
             {isLoading ? (
               <>
@@ -298,44 +315,68 @@ export function ResumeUploader({ onOptimizationComplete }: ResumeUploaderProps) 
         </form>
 
         {optimizationResult && (
-          <div className="mt-8 space-y-6">
+          <div className="mt-8 space-y-6 animate-fade-in">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-800">Resume ATS Analysis</h3>
+              <h3 className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                Resume ATS Analysis
+              </h3>
               <div className="flex items-center">
-                <span className="text-sm mr-2">ATS Score:</span>
+                <span className={`text-sm mr-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>ATS Score:</span>
                 <span className={`text-xl font-bold ${getScoreColor(optimizationResult.optimizationScore)}`}>
                   {optimizationResult.optimizationScore}%
                 </span>
               </div>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Missing Keywords</h4>
+                <h4 className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                  Missing Keywords
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {optimizationResult.missingKeywords.map((keyword, idx) => (
-                    <Badge key={idx} variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
+                    <Badge 
+                      key={idx} 
+                      variant={isDarkMode ? "outline" : "secondary"} 
+                      className={isDarkMode ? 
+                        "bg-amber-900/30 text-amber-300 hover:bg-amber-900/50 border-amber-800" : 
+                        "bg-amber-100 text-amber-800 hover:bg-amber-200"}
+                    >
                       {keyword}
                     </Badge>
                   ))}
                 </div>
               </div>
               
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Suggested Improvements</h4>
-                <ul className="space-y-2">
+              <div className={`p-4 rounded-lg border ${isDarkMode ? 
+                'bg-gray-800/50 border-gray-700' : 
+                'bg-gray-50 border-gray-100'}`}
+              >
+                <h4 className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                  Suggested Improvements
+                </h4>
+                <ul className="space-y-3">
                   {optimizationResult.improvementSuggestions.map((suggestion, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm">
-                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <li key={idx} className={`flex items-start gap-3 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <div className={`mt-0.5 p-1 rounded-full ${isDarkMode ? 'bg-amber-900/30' : 'bg-amber-100'} flex-shrink-0`}>
+                        <AlertTriangle className={`h-3 w-3 ${isDarkMode ? 'text-amber-300' : 'text-amber-500'}`} />
+                      </div>
                       <span>{suggestion}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               
-              <div className="p-4 bg-gray-50 rounded-md border border-gray-100">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Summary of Changes</h4>
-                <p className="text-sm text-gray-600">{optimizationResult.summaryOfChanges}</p>
+              <div className={`p-4 rounded-lg border ${isDarkMode ? 
+                'bg-blue-900/20 border-blue-900/50' : 
+                'bg-blue-50 border-blue-100'}`}
+              >
+                <h4 className={`text-sm font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-700'} mb-2`}>
+                  Summary of Changes
+                </h4>
+                <p className={`text-sm ${isDarkMode ? 'text-blue-200' : 'text-blue-600'}`}>
+                  {optimizationResult.summaryOfChanges}
+                </p>
               </div>
 
               {/* Resume Score Card */}
