@@ -180,7 +180,7 @@ export function ResumeScoreCard({
           </div>
         </div>
 
-        {/* Suggested Improvements - Now showing ALL suggestions without the "more suggestions" text */}
+        {/* Suggested Improvements */}
         <div className={`p-4 rounded-xl border ${isDarkMode 
           ? "bg-amber-900/20 border-amber-800/50" 
           : "bg-amber-50 border-amber-200"}`}

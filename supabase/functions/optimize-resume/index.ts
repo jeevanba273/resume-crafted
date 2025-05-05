@@ -1,11 +1,6 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
-
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const supabaseUrl = 'https://apaiwmvjugoauwdnemvv.supabase.co';
-const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') || '';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,11 +19,14 @@ serve(async (req) => {
   try {
     console.log("Edge function called: optimize-resume");
     
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error("Missing OPENAI_API_KEY environment variable");
       throw new Error("Server configuration error: Missing OpenAI API key");
     }
     
+    const supabaseUrl = 'https://apaiwmvjugoauwdnemvv.supabase.co';
+    const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') || '';
     if (!supabaseServiceKey) {
       console.error("Missing SERVICE_ROLE_KEY environment variable");
       throw new Error("Server configuration error: Missing Supabase service key");
@@ -122,69 +120,94 @@ serve(async (req) => {
     // Call OpenAI API to analyze the resume against the job description
     let openAiResponse;
     try {
+      console.log("Preparing request to OpenAI API");
+      
+      const openAiBody = JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an ATS (Applicant Tracking System) expert that helps job seekers improve their existing resumes. 
+            Analyze the resume against the job description and provide:
+            1. An overall ATS compatibility score (0-100)
+            2. A breakdown of metrics including:
+               - keywordMatch (0-100): How well keywords from the job listing match the resume
+               - formatCompliance (0-100): How well the resume follows standard formats expected by ATS
+               - experienceMatch (0-100): How relevant the candidate's experience is to the job
+               - skillsRelevance (0-100): How well the candidate's skills align with what's needed
+            3. A list of missing keywords from the job description that should be added to the resume
+            4. Specific suggestions for improvements (what to add, change, or remove)
+            5. A short summary of recommended changes
+            
+            Format your response as JSON with the following structure:
+            {
+              "atsScore": number,
+              "metrics": {
+                "keywordMatch": number,
+                "formatCompliance": number,
+                "experienceMatch": number,
+                "skillsRelevance": number
+              },
+              "missingKeywords": ["keyword1", "keyword2", ...],
+              "improvementSuggestions": ["suggestion1", "suggestion2", ...],
+              "summaryOfChanges": "concise paragraph with recommendations"
+            }`
+          },
+          {
+            role: 'user', 
+            content: `Here is my resume:\n\n${resumeText}\n\nHere is the job description I'm applying for:\n\n${jobDescription}\n\nProvide analysis and specific improvements.`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+        response_format: { type: "json_object" }
+      });
+      
+      console.log("Sending request to OpenAI API");
       openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${openAIApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an ATS (Applicant Tracking System) expert that helps job seekers improve their existing resumes. 
-              Analyze the resume against the job description and provide:
-              1. An overall ATS compatibility score (0-100)
-              2. A breakdown of metrics including:
-                 - keywordMatch (0-100): How well keywords from the job listing match the resume
-                 - formatCompliance (0-100): How well the resume follows standard formats expected by ATS
-                 - experienceMatch (0-100): How relevant the candidate's experience is to the job
-                 - skillsRelevance (0-100): How well the candidate's skills align with what's needed
-              3. A list of missing keywords from the job description that should be added to the resume
-              4. Specific suggestions for improvements (what to add, change, or remove)
-              5. A short summary of recommended changes
-              
-              Format your response as JSON with the following structure:
-              {
-                "atsScore": number,
-                "metrics": {
-                  "keywordMatch": number,
-                  "formatCompliance": number,
-                  "experienceMatch": number,
-                  "skillsRelevance": number
-                },
-                "missingKeywords": ["keyword1", "keyword2", ...],
-                "improvementSuggestions": ["suggestion1", "suggestion2", ...],
-                "summaryOfChanges": "concise paragraph with recommendations"
-              }`
-            },
-            {
-              role: 'user', 
-              content: `Here is my resume:\n\n${resumeText}\n\nHere is the job description I'm applying for:\n\n${jobDescription}\n\nProvide analysis and specific improvements.`
-            }
-          ],
-          temperature: 0.3,
-          max_tokens: 2000,
-          response_format: { type: "json_object" }
-        }),
+        body: openAiBody,
       });
+      
+      console.log("OpenAI API response status:", openAiResponse.status);
     } catch (e) {
       console.error("Error calling OpenAI API:", e);
       throw new Error(`Failed to call OpenAI API: ${e.message}`);
     }
 
     if (!openAiResponse.ok) {
-      const errorData = await openAiResponse.text();
-      console.error("OpenAI API returned an error:", openAiResponse.status, errorData);
-      throw new Error(`OpenAI API error: ${openAiResponse.status} ${errorData}`);
+      const errorText = await openAiResponse.text();
+      console.error(`OpenAI API returned an error: ${openAiResponse.status}`, errorText);
+      
+      // Try to parse the error response as JSON to get more details
+      let errorDetails = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetails = errorJson.error?.message || errorText;
+      } catch (e) {
+        // Keep errorDetails as the raw text if parsing fails
+      }
+      
+      throw new Error(`OpenAI API error (${openAiResponse.status}): ${errorDetails}`);
     }
 
-    const openAiData = await openAiResponse.json();
+    // Parse the OpenAI response
+    let openAiData;
+    try {
+      openAiData = await openAiResponse.json();
+      console.log("Received response from OpenAI");
+    } catch (e) {
+      console.error("Error parsing OpenAI response JSON:", e);
+      throw new Error("Invalid JSON in OpenAI response");
+    }
     
     if (!openAiData.choices || !openAiData.choices[0]) {
-      console.error("Unexpected OpenAI response:", openAiData);
-      throw new Error("Failed to get analysis from OpenAI");
+      console.error("Unexpected OpenAI response format:", openAiData);
+      throw new Error("Failed to get analysis from OpenAI: missing choices in response");
     }
     
     let analysisResult;
@@ -192,8 +215,9 @@ serve(async (req) => {
       analysisResult = JSON.parse(openAiData.choices[0].message.content);
       console.log("Analysis received from OpenAI:", analysisResult);
     } catch (e) {
-      console.error("Error parsing OpenAI response:", e);
-      throw new Error("Invalid response format from OpenAI");
+      console.error("Error parsing analysis from OpenAI response:", e);
+      console.error("Raw content:", openAiData.choices[0].message.content);
+      throw new Error("Invalid analysis format from OpenAI");
     }
     
     // Generate a filename for the analysis
