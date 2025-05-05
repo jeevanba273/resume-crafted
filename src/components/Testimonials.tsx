@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 const Testimonials = () => {
   const testimonials = [{
@@ -34,8 +35,6 @@ const Testimonials = () => {
                 <blockquote className="text-lg mb-6">"{testimonial.quote}"</blockquote>
                 <div>
                   <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  <p className="text-sm text-primary">{testimonial.company}</p>
                 </div>
               </CardContent>
             </Card>)}
