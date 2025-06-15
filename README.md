@@ -37,6 +37,13 @@
 
 ---
 
+# Live Demo
+
+> *Live Demo:*
+> Check out the live app on [Railway App](https://resume-crafted.up.railway.app/).
+
+---
+
 ## 📄 Table of Contents
 
 - [Overview](#-overview)
